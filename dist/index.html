@@ -1,0 +1,2189 @@
+<title>BrandLens</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* BrandLens: a proofreader's desk. Ink-black interface, the red pen is the only loud colour. */
+:root {
+  --bg: #F3F4F7; --surface: #FFFFFF; --surface-2: #ECEEF3; --ink: #12151C; --ink-2: #444B59; --ink-3: #5E6675;
+  --line: #D9DDE6; --accent: #2848D8; --pen: #CF2F1B;
+  --high: #BE2424; --med: #A25F00; --low: #2459C9; --ok: #17744A;
+  --high-bg: #FCEBE9; --med-bg: #FFF1D6; --low-bg: #E7EFFD; --ok-bg: #E2F4EA;
+  --btn: #12151C; --btn-ink: #FFFFFF; --shadow: 0 1px 2px rgba(18,21,28,.06), 0 6px 20px rgba(18,21,28,.05);
+  --f-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --f-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D0F14; --surface: #151922; --surface-2: #1D222D; --ink: #EDEFF4; --ink-2: #B6BCC9; --ink-3: #8F97A6;
+    --line: #2A303D; --accent: #8AA4FF; --pen: #FF6F5B;
+    --high: #FF8077; --med: #F2B456; --low: #86AEFF; --ok: #55D391;
+    --high-bg: #3A1B1A; --med-bg: #3A2B12; --low-bg: #172844; --ok-bg: #123424;
+    --btn: #EDEFF4; --btn-ink: #12151C; --shadow: 0 1px 2px rgba(0,0,0,.4);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D0F14; --surface: #151922; --surface-2: #1D222D; --ink: #EDEFF4; --ink-2: #B6BCC9; --ink-3: #8F97A6;
+  --line: #2A303D; --accent: #8AA4FF; --pen: #FF6F5B;
+  --high: #FF8077; --med: #F2B456; --low: #86AEFF; --ok: #55D391;
+  --high-bg: #3A1B1A; --med-bg: #3A2B12; --low-bg: #172844; --ok-bg: #123424;
+  --btn: #EDEFF4; --btn-ink: #12151C; --shadow: 0 1px 2px rgba(0,0,0,.4);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14.5px/1.55 var(--f-body); padding-left: max(0px, env(safe-area-inset-left, 0px)); padding-right: max(0px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3, h4 { font-family: var(--f-display); margin: 0; line-height: 1.15; text-wrap: balance; }
+h1 { font-size: 28px; font-weight: 700; letter-spacing: -.01em; }
+h2 { font-size: 20px; font-weight: 700; } h3 { font-size: 16px; font-weight: 650; } h4 { font-size: 14.5px; font-weight: 650; font-family: var(--f-body); }
+p { margin: 0; } a { color: var(--accent); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.muted { color: var(--ink-3); } .small { font-size: 12.5px; } .tiny { font-size: 12px; }
+.mono { font-family: var(--f-mono); } .good { color: var(--ok); } .bad { color: var(--high); }
+.empty { padding: 28px 12px; text-align: center; color: var(--ink-3); }
+
+/* top bar */
+#top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--surface); border-bottom: 1px solid var(--line); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--surface); }
+.top-in { max-width: 1240px; margin: 0 auto; padding: 10px max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.logo { display: flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; font-family: var(--f-display); font-weight: 800; font-size: 20px; letter-spacing: -.02em; }
+.pen-dot { fill: var(--pen); }
+nav { display: flex; gap: 2px; overflow-x: auto; }
+nav a { padding: 7px 12px; border-radius: 8px; color: var(--ink-2); text-decoration: none; font-weight: 500; white-space: nowrap; }
+nav a:hover { background: var(--surface-2); }
+nav a[aria-current] { color: var(--ink); background: var(--surface-2); font-weight: 600; box-shadow: inset 0 -2px 0 var(--pen); }
+.roles { margin-left: auto; display: flex; gap: 4px; background: var(--surface-2); padding: 3px; border-radius: 10px; }
+.role { border: 0; background: transparent; padding: 5px 12px; border-radius: 8px; cursor: pointer; text-align: left; line-height: 1.2; display: flex; flex-direction: column; }
+.role small { color: var(--ink-3); font-size: 11.5px; } .role b { font-size: 13px; }
+.role.on { background: var(--surface); box-shadow: var(--shadow); } .role.on b { color: var(--ink); }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 22px max(16px, env(safe-area-inset-left, 0px)) 80px; padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 16px; }
+.wrap.narrow { max-width: 860px; }
+.page-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.page-h p { margin-top: 6px; max-width: 70ch; } .page-h.tight { align-items: center; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+
+/* buttons, chips */
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 8px 14px; border-radius: 9px; cursor: pointer; font-weight: 600; font-size: 13.5px; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); } .btn.primary:hover { opacity: .88; background: var(--btn); }
+.btn.danger { color: var(--high); border-color: var(--high); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--ink-2); } .btn.ghost:hover { background: var(--surface-2); }
+.btn.sm { padding: 5px 10px; font-size: 12.5px; border-radius: 8px; }
+.btn[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+.btn.file { cursor: pointer; } .btn.file input { display: none; }
+.lnk { border: 0; background: none; padding: 0; color: var(--accent); cursor: pointer; text-decoration: underline; font: inherit; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.fchip { border: 1px solid var(--line); background: var(--surface); padding: 6px 12px; border-radius: 99px; cursor: pointer; font-size: 13px; color: var(--ink-2); }
+.fchip b { color: var(--ink); margin-left: 3px; } .fchip.on { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); } .fchip.on b { color: inherit; }
+.chips.sm .fchip { padding: 3px 10px; font-size: 12.5px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; padding: 1px 8px; border-radius: 99px; background: var(--surface-2); color: var(--ink-2); font-weight: 500; }
+.chip.ai { background: var(--low-bg); color: var(--low); } .chip.conf { background: var(--surface-2); }
+.chip.sub-contradicts { background: var(--high-bg); color: var(--high); } .chip.sub-unverified { background: var(--med-bg); color: var(--med); } .chip.sub-outdated { background: var(--med-bg); color: var(--med); }
+.pill { font-size: 12px; font-weight: 650; padding: 3px 11px; border-radius: 99px; white-space: nowrap; }
+.st-draft { background: var(--surface-2); color: var(--ink-2); } .st-review { background: var(--low-bg); color: var(--low); }
+.st-changes { background: var(--med-bg); color: var(--med); } .st-ok { background: var(--ok-bg); color: var(--ok); } .st-rej { background: var(--high-bg); color: var(--high); }
+.rchip { font-size: 11px; padding: 1px 8px; border-radius: 6px; font-weight: 650; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
+.r-manager { background: var(--ink); color: var(--bg); } .r-reviewer { background: var(--med-bg); color: var(--med); } .r-creator { background: var(--low-bg); color: var(--low); }
+.chk { display: flex; align-items: center; gap: 8px; cursor: pointer; } .chk input { width: 16px; height: 16px; accent-color: var(--accent); }
+.row-gap { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* forms */
+label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+label.chk, label.btn { font-weight: 500; flex-direction: row; }
+input, select, textarea { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; min-width: 0; font-weight: 400; color: var(--ink); }
+input[type=checkbox], input[type=color] { width: auto; padding: 0; }
+textarea { resize: vertical; line-height: 1.5; }
+input:disabled, select:disabled, textarea:disabled { opacity: .6; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; } .form-grid .wide { grid-column: 1 / -1; }
+.form-grid.inline { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 4px; }
+.note { background: var(--med-bg); color: var(--ink); padding: 8px 12px; border-radius: 8px; font-size: 13px; }
+
+/* tour */
+.tour { background: var(--surface); border-left: 4px solid var(--pen); }
+.tour-h { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.steps li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.steps .n { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--line); display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none; color: var(--ink-2); }
+.steps li.done .n { background: var(--ok); border-color: var(--ok); color: #fff; } .steps li.done > span:nth-child(2) { color: var(--ink-3); text-decoration: line-through; }
+.tour-f { display: flex; justify-content: space-between; align-items: center; }
+
+/* queue */
+.list { display: flex; flex-direction: column; gap: 8px; }
+.rowc { display: grid; grid-template-columns: minmax(0, 1fr) auto auto 90px; gap: 16px; align-items: center; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; cursor: pointer; width: 100%; }
+.rowc:hover { border-color: var(--ink-3); } .r-main { display: flex; flex-direction: column; min-width: 0; } .r-main b { font-size: 15px; } .r-main small { color: var(--ink-3); }
+.r-sev { display: flex; gap: 10px; align-items: center; min-width: 70px; } .dotc { display: inline-flex; align-items: center; gap: 4px; font-weight: 650; font-size: 13px; }
+.dotc i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); } .dotc.high { --c: var(--high); } .dotc.medium { --c: var(--med); } .dotc.low { --c: var(--low); }
+.clean { color: var(--ok); display: inline-flex; gap: 4px; align-items: center; font-weight: 600; }
+.r-st { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; } .wf { font-size: 11.5px; color: var(--pen); font-style: normal; font-weight: 650; }
+.r-t { font-size: 12.5px; text-align: right; }
+@media (max-width: 760px) { .rowc { grid-template-columns: 1fr auto; } .r-t { display: none; } .r-sev { grid-column: 1; } .r-st { grid-row: 1; grid-column: 2; } }
+
+/* review layout */
+.r-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(340px, 1fr); gap: 18px; align-items: start; }
+.r-left { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.r-right { position: sticky; top: calc(76px + env(safe-area-inset-top, 0px)); max-height: calc(100vh - 96px); overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; }
+@media (max-width: 980px) { .r-grid { grid-template-columns: 1fr; } .r-right { position: static; max-height: none; overflow: visible; } }
+.goal { display: flex; gap: 10px; align-items: center; } .goal .k { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-weight: 650; flex: none; }
+.goal-in { border: 0; border-bottom: 1px dashed var(--line); border-radius: 0; padding: 4px 0; background: transparent; }
+.draft { white-space: pre-wrap; word-break: break-word; line-height: 1.75; font-size: 15.5px; padding: 14px 16px; background: var(--bg); border-radius: 10px; border: 1px solid var(--line); }
+.draft-ta { font-size: 15.5px; line-height: 1.7; }
+.mk { --c: var(--low); background: color-mix(in srgb, var(--c) 10%, transparent); text-decoration: underline wavy var(--c); text-decoration-thickness: 1.6px; text-underline-offset: 5px; cursor: pointer; border-radius: 3px; color: inherit; }
+.mk.high { --c: var(--high); } .mk.medium { --c: var(--med); } .mk.low { --c: var(--low); }
+.mk.done { text-decoration: none; background: none; border-bottom: 1px dotted var(--ink-3); }
+.mk.on { background: color-mix(in srgb, var(--c) 28%, transparent); outline: 2px solid var(--c); outline-offset: 1px; }
+.meters { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.meter { padding: 12px 16px; display: flex; flex-direction: column; border-right: 1px solid var(--line); min-width: 0; } .meter:last-child { border-right: 0; }
+.meter .k { font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); font-weight: 650; }
+.meter b { font-family: var(--f-display); font-size: 26px; font-variant-numeric: tabular-nums; line-height: 1.2; } .meter .of { font-size: 15px; color: var(--ink-3); } .meter small { color: var(--ink-3); font-size: 12px; }
+.vgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; } .vcol { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.thumb { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--bg); } .thumb img { display: block; width: 100%; } .thumb-empty { padding: 28px; text-align: center; color: var(--ink-3); font-size: 13px; }
+.pal { display: flex; gap: 8px; flex-wrap: wrap; } .sw { display: flex; flex-direction: column; align-items: center; font-size: 12px; gap: 1px; } .sw i { width: 38px; height: 38px; border-radius: 8px; border: 1px solid var(--line); } .sw small { font-size: 11px; }
+.cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .colorin { display: flex; gap: 6px; } .colorin input[type=color] { width: 40px; height: 36px; flex: none; border: 1px solid var(--line); border-radius: 8px; background: none; } .hex { font-family: var(--f-mono); }
+.contrast { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bgc); } .contrast > span:last-child { background: var(--surface); padding: 4px 10px; border-radius: 6px; font-size: 13px; }
+.contrast .sample { font-family: var(--f-display); font-size: 28px; font-weight: 800; color: var(--fg); } .contrast em { font-style: normal; font-weight: 650; }
+
+/* findings */
+.fp-h { display: flex; justify-content: space-between; align-items: baseline; }
+.safe .btn { white-space: nowrap; }
+.safe { display: flex; gap: 10px; align-items: center; justify-content: space-between; background: var(--ok-bg); padding: 9px 12px; border-radius: 10px; font-size: 13px; }
+.aip { border: 1px dashed var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; } .aip-h { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; } .aip-b { background: var(--surface-2); padding: 10px 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.sent { white-space: pre-wrap; font-family: var(--f-mono); font-size: 12px; margin: 0; max-height: 150px; overflow: auto; background: var(--surface); padding: 8px; border-radius: 6px; }
+.fc { --c: var(--low); background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--c); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow); scroll-margin: 100px; }
+.fc.high { --c: var(--high); } .fc.medium { --c: var(--med); } .fc.low { --c: var(--low); }
+.fc.on { outline: 2px solid var(--c); } .fc.flash { animation: fl 1.2s ease; } @keyframes fl { 0% { background: color-mix(in srgb, var(--c) 22%, var(--surface)); } 100% { background: var(--surface); } }
+.fc.resolved { opacity: .78; border-left-color: var(--line); box-shadow: none; }
+.fc-h { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sev { font-size: 11px; font-weight: 750; text-transform: uppercase; letter-spacing: .06em; color: var(--c); }
+.rid { font-family: var(--f-mono); font-size: 11px; color: var(--ink-3); margin-left: auto; }
+.quote { font-family: var(--f-mono); font-size: 12.5px; background: var(--surface-2); padding: 5px 8px; border-radius: 6px; word-break: break-word; }
+.why { color: var(--ink-2); font-size: 13.5px; }
+.src { display: flex; gap: 8px; font-size: 12.5px; color: var(--ink-3); background: var(--bg); border-radius: 8px; padding: 7px 9px; } .cid { font-family: var(--f-mono); font-size: 11.5px; font-weight: 600; color: var(--ink); background: var(--surface-2); padding: 0 6px; border-radius: 4px; height: fit-content; white-space: nowrap; }
+.fix { display: flex; flex-direction: column; gap: 3px; } .ba { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 13.5px; }
+del { color: var(--high); background: var(--high-bg); text-decoration: line-through; padding: 0 3px; border-radius: 3px; } ins { color: var(--ok); background: var(--ok-bg); text-decoration: none; padding: 0 3px; border-radius: 3px; } ins.gone { font-style: italic; }
+.arr { color: var(--ink-3); } .keep { font-size: 12.5px; color: var(--ink-3); }
+.fc-a { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.dis { background: var(--surface-2); padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; }
+.so { font-size: 12.5px; display: flex; gap: 5px; align-items: center; font-weight: 600; } .so.ok { color: var(--ok); } .so.wait { color: var(--med); }
+.allclear { text-align: center; padding: 26px 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; border: 1px dashed var(--line); border-radius: 10px; } .allclear .big { width: 40px; height: 40px; border-radius: 50%; background: var(--ok-bg); color: var(--ok); display: grid; place-items: center; }
+
+/* discussion */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin: -4px 0 4px; } .tabs.scroll { overflow-x: auto; margin: 0; }
+.tab { border: 0; background: none; padding: 9px 14px; cursor: pointer; color: var(--ink-3); font-weight: 600; border-bottom: 2px solid transparent; white-space: nowrap; } .tab.on { color: var(--ink); border-bottom-color: var(--pen); }
+.cm { padding: 8px 0; border-bottom: 1px solid var(--line); } .cm-h { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.composer { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; margin-top: 6px; }
+.vers { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; } .vers li { display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; }
+.difft { white-space: pre-wrap; line-height: 1.7; background: var(--bg); padding: 10px 12px; border-radius: 8px; margin-top: 6px; }
+.audit { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; } .audit li { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; }
+.abar { position: sticky; bottom: 0; z-index: 5; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; box-shadow: 0 -4px 18px rgba(18,21,28,.08); margin-bottom: env(safe-area-inset-bottom, 0px); }
+.ab-msg { flex: 1 1 220px; font-size: 13px; color: var(--ink-2); display: flex; gap: 6px; align-items: center; } .ab-msg.ok { color: var(--ok); font-weight: 600; } .ab-msg.warn { color: var(--med); font-weight: 600; } .ab-msg.bad { color: var(--high); font-weight: 600; }
+.ab-note { flex: 1 1 100%; } .ab-note textarea { min-height: 38px; }
+
+/* kit */
+.grp { margin: 10px 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); } .grp:first-child { margin-top: 0; }
+.clauses { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; }
+.clause { display: flex; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; scroll-margin: 100px; } .clause p { color: var(--ink-2); font-size: 13.5px; margin-top: 2px; } .clause.flash { animation: fl2 1.6s ease; }
+@keyframes fl2 { 0%,60% { background: var(--med-bg); } 100% { background: transparent; } }
+.rules { margin-top: 6px; font-size: 12px; color: var(--ink-3); display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.tw { overflow-x: auto; } table { border-collapse: collapse; width: 100%; font-size: 13.5px; } th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); } th, td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.facts { display: flex; flex-direction: column; gap: 8px; } .fact { display: grid; grid-template-columns: minmax(0, 1fr) 140px auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); } .fact div { display: flex; flex-direction: column; }
+.palette { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; } .pc { display: flex; flex-direction: column; gap: 2px; } .pc i { height: 70px; border-radius: 10px; border: 1px solid var(--line); margin-bottom: 4px; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; } .two > div { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; } .two textarea { font-family: var(--f-mono); font-size: 12px; }
+.kitb { gap: 8px; }
+
+/* insights */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
+.kpis > div { padding: 14px 16px 14px 0; display: flex; flex-direction: column; } .kpis b { font-family: var(--f-display); font-size: 40px; line-height: 1.1; font-variant-numeric: tabular-nums; } .kpis span { color: var(--ink-3); font-size: 13px; max-width: 28ch; }
+.two-c { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+.chart { width: 100%; height: auto; display: block; } .ct { fill: var(--ink-2); font-size: 13px; font-family: var(--f-body); } .ct.s { font-size: 11px; fill: var(--ink-3); } .cv { fill: var(--ink); font-size: 12.5px; font-weight: 650; font-variant-numeric: tabular-nums; } .cv.s { font-size: 11px; }
+.bar { fill: var(--ink); } .grid { stroke: var(--line); stroke-width: 1; } .area { fill: color-mix(in srgb, var(--pen) 14%, transparent); } .line { stroke: var(--ink); stroke-width: 2; } .dot { fill: var(--surface); stroke: var(--ink); stroke-width: 2; } .dot.last { fill: var(--pen); stroke: var(--pen); }
+.rate { display: inline-block; width: 80px; height: 8px; background: var(--surface-2); border-radius: 4px; vertical-align: middle; overflow: hidden; } .rate i { display: block; height: 100%; background: var(--pen); }
+
+/* about */
+.flow { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; } .flow li { display: flex; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); } .flow .n { width: 28px; height: 28px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-weight: 700; flex: none; } .flow p { color: var(--ink-2); font-size: 13.5px; }
+.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+
+#toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 13.5px; max-width: min(92vw, 520px); opacity: 0; pointer-events: none; transition: .2s; z-index: 50; }
+#toast.show { opacity: 1; transform: translate(-50%, 0); } #toast.bad { background: var(--high); color: #fff; }
+footer { text-align: center; color: var(--ink-3); font-size: 12.5px; padding: 0 16px 40px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media (max-width: 640px) { h1 { font-size: 23px; } .roles { margin-left: 0; width: 100%; } .role { flex: 1; } .fact { grid-template-columns: 1fr; } .kpis b { font-size: 32px; } }
+
+</style>
+<header id="top"></header>
+<main id="app"></main>
+<footer>BrandLens · Round 2 build for the Inkloom AI brand-governance challenge · demo brand “Lumo Budget” is fictional</footer>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+/*  BrandLens review engine
+ *  Pure functions, no DOM. Runs in the browser and in Node (see tests/).
+ *  Every finding cites a guideline clause or an approved source from the Brand Kit.
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.BrandLensEngine = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  const SEV = { high: 3, medium: 2, low: 1 };
+
+  /* Rule catalogue: label, category and the clause the rule enforces. */
+  const RULES = {
+    'TERM-CUST': { label: 'Customers / users → members', category: 'terminology', clause: 'T-2.1' },
+    'TERM-NAME': { label: 'Product naming', category: 'terminology', clause: 'T-2.2' },
+    'TERM-CAP': { label: 'Brand name capitalisation', category: 'terminology', clause: 'T-2.3' },
+    'TERM-GLO': { label: 'Glossary term', category: 'terminology', clause: 'T-2.1' },
+    'TONE-HYPE': { label: 'Hype words', category: 'tone', clause: 'V-1.2' },
+    'TONE-JARGON': { label: 'Corporate jargon', category: 'tone', clause: 'V-1.3' },
+    'TONE-SLANG': { label: 'Slang in formal channel', category: 'tone', clause: 'V-1.4' },
+    'TONE-CAPS': { label: 'ALL CAPS', category: 'tone', clause: 'V-1.2' },
+    'TONE-EXCL': { label: 'Exclamation marks', category: 'tone', clause: 'V-1.2' },
+    'CLM-SUP': { label: 'Unsupported ranking claim', category: 'claims', clause: 'C-4.1' },
+    'CLM-NUM': { label: 'Unverified performance figure', category: 'claims', clause: 'C-4.1' },
+    'CLM-ABS': { label: 'Absolute promise', category: 'claims', clause: 'C-4.1' },
+    'CLM-PRO': { label: 'Prohibited claim', category: 'claims', clause: 'C-4.2' },
+    'FACT-PRICE': { label: 'Price mismatch', category: 'facts', clause: 'F-5.1' },
+    'FACT-USERS': { label: 'Member count mismatch', category: 'facts', clause: 'F-5.1' },
+    'FACT-YEAR': { label: 'Launch year mismatch', category: 'facts', clause: 'F-5.1' },
+    'FACT-FREE': { label: 'Free plan limit mismatch', category: 'facts', clause: 'F-5.1' },
+    'FACT-TRIAL': { label: 'Trial length mismatch', category: 'facts', clause: 'F-5.1' },
+    'MSG-FIN': { label: 'Finance disclaimer missing', category: 'messaging', clause: 'M-3.1' },
+    'MSG-TERMS': { label: 'Offer terms missing', category: 'messaging', clause: 'M-3.2' },
+    'MSG-NAME': { label: 'Full product name on first mention', category: 'messaging', clause: 'M-3.3' },
+    'A11Y-READ': { label: 'Reading level', category: 'accessibility', clause: 'A-6.1' },
+    'A11Y-LONG': { label: 'Very long sentence', category: 'accessibility', clause: 'A-6.1' },
+    'A11Y-HASH': { label: 'Hashtag not CamelCase', category: 'accessibility', clause: 'A-6.2' },
+    'A11Y-LINK': { label: 'Vague link text', category: 'accessibility', clause: 'A-6.2' },
+    'A11Y-EMOJI': { label: 'Emoji overuse', category: 'accessibility', clause: 'A-6.2' },
+    'A11Y-ALT': { label: 'Image alt text', category: 'accessibility', clause: 'A-6.2' },
+    'A11Y-CON': { label: 'Colour contrast', category: 'accessibility', clause: 'A-6.3' },
+    'VIS-PAL': { label: 'Off-palette colour', category: 'visual', clause: 'VI-7.1' },
+    'VIS-LOGO': { label: 'Logo usage', category: 'visual', clause: 'VI-7.2' },
+    'CONF-PII': { label: 'Confidential or personal data', category: 'confidentiality', clause: 'P-8.1' },
+    'AI-REV': { label: 'AI second opinion', category: 'tone', clause: 'V-1.1' },
+  };
+
+  const CATEGORIES = ['tone', 'terminology', 'messaging', 'facts', 'claims', 'accessibility', 'visual', 'confidentiality'];
+
+  /* ---------- helpers ---------- */
+  const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const phraseRe = (p, flags) =>
+    new RegExp('(?<![\\w])' + escRe(p).replace(/-/g, '[- ]') + '(?![\\w])', flags || 'gi');
+  const matchCase = (src, rep) =>
+    rep && /^[A-Z]/.test(src) && /^[a-z]/.test(rep) ? rep[0].toUpperCase() + rep.slice(1) : rep;
+  const fmtNum = (n) => Number(n).toLocaleString('en-IN');
+
+  function F(o) {
+    const meta = RULES[o.rule] || {};
+    const f = Object.assign(
+      { start: -1, end: -1, text: '', fix: null, keep: '', conf: 1, source: 'rule', safe: false, noDismiss: false, sub: null },
+      { category: meta.category, clause: meta.clause },
+      o
+    );
+    f.key = f.rule + '|' + (f.text || f.title || '').toLowerCase();
+    f.id = f.rule + ':' + f.start + ':' + f.end + ':' + (f.source === 'ai' ? 'ai' : 'r');
+    return f;
+  }
+
+  function protectedRanges(text) {
+    const r = [];
+    const re = /https?:\/\/\S+|\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+|[#@][A-Za-z]\w*/g;
+    for (const m of text.matchAll(re)) r.push([m.index, m.index + m[0].length]);
+    return r;
+  }
+  const overlaps = (ranges, s, e) => ranges.some(([a, b]) => s < b && e > a);
+
+  function sentences(text) {
+    const out = [];
+    for (const m of text.matchAll(/[^.!?\n]+[.!?]*/g)) {
+      const lead = m[0].match(/^\s*/)[0].length;
+      const t = m[0].trim();
+      if (t) out.push({ start: m.index + lead, end: m.index + lead + t.length, text: t });
+    }
+    return out;
+  }
+
+  function syllables(word) {
+    let w = word.toLowerCase().replace(/[^a-z]/g, '');
+    if (!w) return 0;
+    if (w.length <= 3) return 1;
+    w = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '').replace(/^y/, '');
+    const m = w.match(/[aeiouy]{1,2}/g);
+    return m ? m.length : 1;
+  }
+
+  function readability(text) {
+    const words = text.replace(/https?:\/\/\S+|[#@]\w+/g, ' ').match(/[A-Za-z][A-Za-z'’-]*/g) || [];
+    const sents = sentences(text.replace(/https?:\/\/\S+/g, ' ')).length || 1;
+    const syl = words.reduce((n, w) => n + syllables(w), 0);
+    const score = words.length ? 206.835 - 1.015 * (words.length / sents) - 84.6 * (syl / words.length) : 100;
+    return { score: Math.round(score), words: words.length, sentences: sents };
+  }
+
+  /* ---------- colour maths (WCAG + Lab) ---------- */
+  function hexToRgb(h) {
+    if (typeof h !== 'string') return null;
+    let x = h.trim().replace('#', '');
+    if (x.length === 3) x = x.split('').map((c) => c + c).join('');
+    if (!/^[0-9a-fA-F]{6}$/.test(x)) return null;
+    return [parseInt(x.slice(0, 2), 16), parseInt(x.slice(2, 4), 16), parseInt(x.slice(4, 6), 16)];
+  }
+  const rgbToHex = (r, g, b) =>
+    '#' + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('').toUpperCase();
+  function luminance(rgb) {
+    const [r, g, b] = rgb.map((v) => {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  }
+  function contrast(h1, h2) {
+    const a = hexToRgb(h1), b = hexToRgb(h2);
+    if (!a || !b) return null;
+    const l1 = luminance(a), l2 = luminance(b);
+    return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+  }
+  function toLab(rgb) {
+    const lin = rgb.map((v) => {
+      v /= 255;
+      return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    const x = (lin[0] * 0.4124 + lin[1] * 0.3576 + lin[2] * 0.1805) / 0.95047;
+    const y = lin[0] * 0.2126 + lin[1] * 0.7152 + lin[2] * 0.0722;
+    const z = (lin[0] * 0.0193 + lin[1] * 0.1192 + lin[2] * 0.9505) / 1.08883;
+    const f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+    return [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))];
+  }
+  function deltaE(h1, h2) {
+    const a = toLab(hexToRgb(h1)), b = toLab(hexToRgb(h2));
+    return Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2);
+  }
+  function nearestBrand(hex, kit) {
+    let best = null;
+    for (const p of kit.palette) {
+      const d = deltaE(hex, p.hex);
+      if (!best || d < best.d) best = { name: p.name, hex: p.hex, d };
+    }
+    return best;
+  }
+  /* A brand colour (or black/white) that passes AA against the background and stays closest to the current colour. */
+  function suggestTextColor(fg, bg, large, kit) {
+    const need = large ? 3 : 4.5;
+    const brand = kit.palette.map((p) => ({ name: p.name, hex: p.hex }));
+    const pools = [brand, [{ name: 'Black', hex: '#000000' }, { name: 'White', hex: '#FFFFFF' }]];
+    for (const pool of pools) {
+      const ok = pool.filter((c) => contrast(c.hex, bg) >= need);
+      if (ok.length) {
+        ok.sort((a, b) => (hexToRgb(fg) ? deltaE(fg, a.hex) - deltaE(fg, b.hex) : 0));
+        return ok[0];
+      }
+    }
+    return null;
+  }
+
+  /* Dominant colours from raw RGBA pixels (4 bits per channel buckets). */
+  function paletteFromPixels(data) {
+    const bins = new Map();
+    let total = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 128) continue;
+      const k = ((data[i] >> 4) << 8) | ((data[i + 1] >> 4) << 4) | (data[i + 2] >> 4);
+      let b = bins.get(k);
+      if (!b) bins.set(k, (b = { n: 0, r: 0, g: 0, b: 0 }));
+      b.n++; b.r += data[i]; b.g += data[i + 1]; b.b += data[i + 2];
+      total++;
+    }
+    const list = [...bins.values()]
+      .map((b) => ({ hex: rgbToHex(b.r / b.n, b.g / b.n, b.b / b.n), share: b.n / (total || 1) }))
+      .sort((a, b) => b.share - a.share);
+    const top6 = list.slice(0, 6).reduce((n, c) => n + c.share, 0);
+    const photographic = top6 < 0.6 || list.filter((c) => c.share >= 0.02).length >= 9;
+    return { colors: list.slice(0, 6), photographic };
+  }
+
+  /* ---------- hashtag helper ---------- */
+  const DICT = ('back to college budget budgeting lumo plus save smart money student students life campus spend clear calm free new launch ' +
+    'offer deal sale tips fest day week hack hacks goal goals study exam exams semester hostel pocket month easy app india finance financial first ' +
+    'internship stipend chai weekend monthly plan planning for with and the you your of in on my our is it up go get now best win join tracker track ' +
+    'expense expenses needs wants savings invest wealth school class kit club team day night live fresh start').split(' ');
+  function segment(s) {
+    const n = s.length, best = new Array(n + 1).fill(null);
+    best[0] = [];
+    for (let i = 0; i < n; i++) {
+      if (!best[i]) continue;
+      for (const w of DICT) {
+        if (s.startsWith(w, i) && (!best[i + w.length] || best[i].length + 1 < best[i + w.length].length)) best[i + w.length] = best[i].concat(w);
+      }
+    }
+    return best[n];
+  }
+
+  /* ---------- text analysis ---------- */
+  function analyze(text, kit, ctx) {
+    ctx = ctx || {};
+    const out = [];
+    const add = (o) => out.push(F(o));
+    const prot = protectedRanges(text);
+    const stats = { factsChecked: 0, factsOk: 0, claimsApproved: 0, claimsFlagged: 0 };
+    const brand = kit.brand;
+
+    /* approved claims (used to suppress false alarms) */
+    const approvedR = [];
+    for (const c of kit.claims.filter((c) => c.status === 'approved')) {
+      try {
+        for (const m of text.matchAll(new RegExp(c.pattern, 'gi'))) {
+          approvedR.push([m.index, m.index + m[0].length]);
+          stats.claimsApproved++;
+        }
+      } catch (e) { /* bad pattern in kit: ignore */ }
+    }
+
+    /* terminology: glossary */
+    for (const g of kit.glossary) {
+      for (const w of g.wrong) {
+        for (const m of text.matchAll(phraseRe(w))) {
+          const s = m.index, e = s + m[0].length;
+          if (overlaps(prot, s, e)) continue;
+          add({
+            rule: g.rule || 'TERM-GLO', severity: 'medium', start: s, end: e, text: m[0],
+            title: 'Use “' + g.right + '” instead of “' + m[0] + '”',
+            why: g.note || 'Approved terminology uses “' + g.right + '”.',
+            clause: g.clause || 'T-2.1',
+            fix: { kind: 'replace', text: matchCase(m[0], g.right) },
+            keep: 'Same meaning, approved wording.', safe: true,
+          });
+        }
+      }
+    }
+    /* terminology: brand capitalisation */
+    if (brand.short) {
+      const re = new RegExp('(?<![\\w#@./-])(' + escRe(brand.short.toLowerCase()) + '|' + escRe(brand.short.toUpperCase()) + ')(?![\\w.@/-])', 'g');
+      for (const m of text.matchAll(re)) {
+        add({
+          rule: 'TERM-CAP', severity: 'low', start: m.index, end: m.index + m[0].length, text: m[0],
+          title: 'Write the brand name as “' + brand.short + '”',
+          why: 'The brand name is always written with a capital first letter and lowercase letters after it.',
+          fix: { kind: 'replace', text: brand.short }, keep: 'Only the capitalisation changes.', safe: true,
+        });
+      }
+    }
+
+    /* tone: banned phrases */
+    for (const b of kit.banned) {
+      if (b.channels && b.channels.length && !b.channels.includes(ctx.channel)) continue;
+      const rule = b.kind === 'jargon' ? 'TONE-JARGON' : b.kind === 'slang' ? 'TONE-SLANG' : 'TONE-HYPE';
+      for (const m of text.matchAll(phraseRe(b.phrase))) {
+        const s = m.index, e = s + m[0].length;
+        if (overlaps(prot, s, e)) continue;
+        add({
+          rule, severity: 'low', start: s, end: e, text: m[0],
+          title: '“' + m[0] + '” doesn’t match the brand voice',
+          why: rule === 'TONE-HYPE' ? 'The voice is calm and plain. Hype words make claims sound bigger than we can prove.'
+            : rule === 'TONE-JARGON' ? 'Corporate buzzwords make copy harder to read. Say it the way a helpful senior student would.'
+            : 'This channel is formal. Slang is only for casual posts.',
+          clause: rule === 'TONE-HYPE' ? 'V-1.2' : rule === 'TONE-JARGON' ? 'V-1.3' : 'V-1.4',
+          fix: b.suggest ? { kind: 'replace', text: matchCase(m[0], b.suggest) } : null,
+          keep: b.suggest ? 'Keeps the point of the sentence in plainer words.' : '',
+        });
+      }
+    }
+    /* tone: ALL CAPS runs */
+    const capsAllow = new Set((kit.capsAllow || []).concat([brand.short ? brand.short.toUpperCase() : '']));
+    for (const m of text.matchAll(/\b[A-Z]{3,}(?:\s+[A-Z]{2,})*\b/g)) {
+      const s = m.index, e = s + m[0].length;
+      if (overlaps(prot, s, e)) continue;
+      const toks = m[0].split(/(\s+)/);
+      if (toks.every((t) => /^\s+$/.test(t) || capsAllow.has(t))) continue;
+      const before = text.slice(0, s).trimEnd();
+      let atStart = !/[A-Za-z0-9,;:'"-]$/.test(before);
+      const fixed = toks.map((t) => {
+        if (/^\s+$/.test(t) || capsAllow.has(t)) return t;
+        const low = t.toLowerCase();
+        const r = atStart ? low[0].toUpperCase() + low.slice(1) : low;
+        atStart = false;
+        return r;
+      }).join('');
+      add({
+        rule: 'TONE-CAPS', severity: 'low', start: s, end: e, text: m[0],
+        title: 'Avoid ALL CAPS',
+        why: 'Capital letters read as shouting and are harder for screen readers and dyslexic readers.',
+        fix: { kind: 'replace', text: fixed }, keep: 'Same words, normal capitalisation.', safe: true,
+      });
+    }
+    /* tone: exclamation marks */
+    const words0 = (text.match(/[A-Za-z]+/g) || []).length;
+    const allowEx = Math.max(1, Math.floor(words0 / 90));
+    let seenEx = 0;
+    for (const m of text.matchAll(/!+/g)) {
+      seenEx++;
+      if (m[0].length >= 2) {
+        add({
+          rule: 'TONE-EXCL', severity: 'low', start: m.index, end: m.index + m[0].length, text: m[0],
+          title: 'Use a single exclamation mark',
+          why: 'At most one exclamation mark per post. Repeated marks feel pushy.',
+          fix: { kind: 'replace', text: '!' }, keep: 'Keeps the friendly energy.', safe: true,
+        });
+      } else if (seenEx > allowEx) {
+        add({
+          rule: 'TONE-EXCL', severity: 'low', start: m.index, end: m.index + 1, text: '!',
+          title: 'Too many exclamation marks',
+          why: 'At most one exclamation mark per post. Use a full stop for the rest.',
+          fix: { kind: 'replace', text: '.' }, keep: 'Keeps the sentence, softens the tone.', safe: true,
+        });
+      }
+    }
+
+    /* claims: prohibited and approved register */
+    for (const c of kit.claims.filter((c) => c.status === 'prohibited')) {
+      let re;
+      try { re = new RegExp(c.pattern, 'gi'); } catch (e) { continue; }
+      for (const m of text.matchAll(re)) {
+        const s = m.index, e = s + m[0].length;
+        if (!m[0].trim() || overlaps(prot, s, e)) continue;
+        let fix = null;
+        if (typeof c.suggest === 'string') fix = c.suggest === '' ? { kind: 'delete' } : { kind: 'replace', text: matchCase(m[0], c.suggest) };
+        stats.claimsFlagged++;
+        add({
+          rule: 'CLM-PRO', severity: 'high', sub: 'contradicts', start: s, end: e, text: m[0],
+          title: 'Prohibited claim: “' + m[0] + '”',
+          why: c.why || 'This kind of promise is on the prohibited list (' + c.id + '). It can mislead members and creates legal risk.',
+          clause: 'C-4.2', fix, keep: fix ? 'Keeps the sentence, removes the promise.' : '',
+        });
+      }
+    }
+    /* claims: superlatives */
+    const supRe = /(?<![\w])(?:the\s+)?(#\s?1|number one|no\.?\s?1|best|leading|fastest|most (?:trusted|popular|loved|secure|reliable)|top[- ]rated|world[- ]class|unbeatable|unmatched)(?![\w])/gi;
+    for (const m of text.matchAll(supRe)) {
+      let s = m.index, e = s + m[0].length;
+      const word = m[1].toLowerCase();
+      if (overlaps(prot, s, e) || overlaps(approvedR, s, e)) continue;
+      const after = text.slice(e), before = text.slice(0, s);
+      if (word === 'best' && (/^\s+(practice|practices|friend|wishes|regards|of luck)/i.test(after) || /\b(your|my|our|their|do|at)\s+$/i.test(before))) continue;
+      let fix = { kind: 'delete' }, keep = 'Removes only the unproven ranking.';
+      const rank = /^(#|number|no|best|leading|fastest|most|top)/.test(word);
+      const m2 = after.match(/^\s+([A-Za-z][A-Za-z -]{1,32}?)(?=\s+(?:and|for|that|to|in|on|with|which|you|so)\b|[.,!?;:\n]|$)/);
+      if (rank && m2 && m2[1].trim().split(/\s+/).length <= 4) {
+        e += m2[0].length;
+        fix = { kind: 'replace', text: 'a simple ' + m2[1].trim() };
+        keep = 'Keeps what the product is, drops the unproven ranking.';
+      }
+      stats.claimsFlagged++;
+      add({
+        rule: 'CLM-SUP', severity: 'high', sub: 'unverified', start: s, end: e, text: text.slice(s, e).trim(),
+        title: 'Unsupported claim: “' + text.slice(s, e).trim() + '”',
+        why: 'Rankings and superlatives need an approved source in the Claims register. None exists for this one, so it can’t go out as written.',
+        clause: 'C-4.1', fix, keep,
+      });
+    }
+    /* claims: numeric performance figures */
+    const numRes = [
+      /\b(save|saves|saving|savings of|earn|earns|grow|grows|boost|boosts|cut|cuts|reduce|reduces|lower|lowers)\s+(?:you\s+|your\s+\w+\s+)?(?:up to\s+)?(?:by\s+)?(\d+(?:\.\d+)?)\s?%/gi,
+      /\b(\d+(?:\.\d+)?)\s?%\s+(?:more|less|faster|better|savings|returns|cheaper)\b/gi,
+    ];
+    for (const re of numRes) {
+      for (const m of text.matchAll(re)) {
+        const s = m.index, e = s + m[0].length;
+        if (overlaps(prot, s, e)) continue;
+        const verb = (m[1] || '').toLowerCase();
+        const money = /save|saving|earn|grow|boost|returns|cut|reduce|lower|cheaper|savings/.test(m[0].toLowerCase());
+        const canFix = /^(save|saves|saving|cut|cuts|reduce|reduces|lower|lowers)/.test(verb);
+        stats.claimsFlagged++;
+        add({
+          rule: 'CLM-NUM', severity: money ? 'high' : 'medium', sub: 'unverified', start: s, end: e, text: m[0],
+          title: 'Unverified figure: “' + m[0] + '”',
+          why: 'Numbers about savings or performance need a verified source in the Approved facts list. There is none for this figure.',
+          clause: 'C-4.1',
+          fix: canFix ? { kind: 'replace', text: 'helps you save' } : null,
+          keep: canFix ? 'Keeps the benefit, drops the number we can’t prove.' : 'Remove the figure, or ask a Reviewer to add a verified source.',
+        });
+      }
+    }
+    /* claims: absolute promises */
+    const absRe = /(?<![\w])(unlimited|free forever|completely free|totally free|never worry|zero effort|100\s?%(?!\s?(?:safe|secure))(?:\s+free)?)(?![\w])/gi;
+    for (const m of text.matchAll(absRe)) {
+      const s = m.index, e = s + m[0].length;
+      if (overlaps(prot, s, e) || overlaps(approvedR, s, e)) continue;
+      stats.claimsFlagged++;
+      add({
+        rule: 'CLM-ABS', severity: 'medium', sub: 'unverified', start: s, end: e, text: m[0],
+        title: 'Absolute promise: “' + m[0] + '”',
+        why: 'Words like “unlimited” and “free forever” are promises the product plan has to back up. Check them against the approved facts or soften them.',
+        clause: 'C-4.1', fix: null, keep: 'Say what the plan really includes, for example the number of budgets.',
+      });
+    }
+
+    /* facts */
+    const fact = (k) => kit.facts.find((f) => f.key === k);
+    const num = (n, unit) => {
+      let v = parseFloat(String(n).replace(/,/g, ''));
+      unit = (unit || '').trim().toLowerCase();
+      if (unit === 'k') v *= 1e3;
+      else if (unit === 'lakh' || unit === 'lakhs') v *= 1e5;
+      else if (unit === 'm' || unit === 'million') v *= 1e6;
+      return v;
+    };
+    const fp = fact('plusPrice');
+    if (fp) {
+      for (const m of text.matchAll(/(₹|rs\.?|inr)\s?(\d[\d,]*(?:\.\d+)?)(?=\s*(?:\/|per|a|each)?\s*(?:month|mo)\b)/gi)) {
+        stats.factsChecked++;
+        const v = num(m[2]);
+        if (v === Number(fp.value)) { stats.factsOk++; continue; }
+        add({
+          rule: 'FACT-PRICE', severity: 'high', sub: 'contradicts', start: m.index, end: m.index + m[0].length, text: m[0],
+          title: 'Price doesn’t match the approved fact',
+          why: 'Approved: ₹' + fmtNum(fp.value) + ' per month. Your text says ' + m[0] + '. Source: ' + fp.source + '.',
+          clause: fp.clause || 'F-5.1', fix: { kind: 'replace', text: '₹' + fmtNum(fp.value) }, keep: 'Same sentence with the current price.',
+        });
+      }
+    }
+    const fu = fact('userCount');
+    if (fu) {
+      const re = /(?:(over|more than|nearly|almost|about|around|up to)\s+)?(\d[\d,]*(?:\.\d+)?)(\s?(?:k|lakhs?|m|million)\b)?(\+)?(?=\s*(?:active\s+)?(?:students|users|members)\b)/gi;
+      for (const m of text.matchAll(re)) {
+        const v = num(m[2], m[3]);
+        if (!(v >= 100)) continue;
+        stats.factsChecked++;
+        const appr = Number(fu.value);
+        if (v >= appr * 0.9 && v <= appr * 1.02) { stats.factsOk++; continue; }
+        const over = v > appr;
+        add({
+          rule: 'FACT-USERS', severity: over ? 'high' : 'medium', sub: over ? 'contradicts' : 'outdated', start: m.index, end: m.index + m[0].length, text: m[0],
+          title: over ? 'Member count is higher than the approved figure' : 'Member count is out of date',
+          why: 'Approved: ' + fmtNum(appr) + '+ students. Your text says ' + m[0].trim() + '. Source: ' + fu.source + '.',
+          clause: fu.clause || 'F-5.1', fix: { kind: 'replace', text: fmtNum(appr) + '+' }, keep: 'Same claim with the verified number.',
+        });
+      }
+    }
+    const fy = fact('launchYear');
+    if (fy) {
+      for (const m of text.matchAll(/\b(launched|founded|started|since|established)(\s+in)?\s+(20\d{2})\b/gi)) {
+        stats.factsChecked++;
+        if (Number(m[3]) === Number(fy.value)) { stats.factsOk++; continue; }
+        const s = m.index + m[0].lastIndexOf(m[3]);
+        add({
+          rule: 'FACT-YEAR', severity: 'high', sub: 'contradicts', start: s, end: s + 4, text: m[3],
+          title: 'Launch year doesn’t match the approved fact',
+          why: 'Approved: launched in ' + fy.value + '. Your text says ' + m[3] + '. Source: ' + fy.source + '.',
+          clause: fy.clause || 'F-5.1', fix: { kind: 'replace', text: String(fy.value) }, keep: 'Same sentence with the correct year.',
+        });
+      }
+    }
+    const ff = fact('freeBudgets');
+    if (ff) {
+      for (const m of text.matchAll(/(\d+)(?=\s+free\s+budgets?\b)/gi)) {
+        stats.factsChecked++;
+        if (Number(m[1]) === Number(ff.value)) { stats.factsOk++; continue; }
+        add({
+          rule: 'FACT-FREE', severity: 'high', sub: 'contradicts', start: m.index, end: m.index + m[0].length, text: m[0],
+          title: 'Free plan limit doesn’t match the approved fact',
+          why: 'Approved: ' + ff.value + ' free budgets. Source: ' + ff.source + '.',
+          clause: ff.clause || 'F-5.1', fix: { kind: 'replace', text: String(ff.value) }, keep: 'Same sentence with the correct limit.',
+        });
+      }
+    }
+    const ft = fact('trialDays');
+    if (ft) {
+      for (const m of text.matchAll(/(\d+)(?=[- ]day\s+(?:free\s+)?trial)/gi)) {
+        stats.factsChecked++;
+        if (Number(m[1]) === Number(ft.value)) { stats.factsOk++; continue; }
+        add({
+          rule: 'FACT-TRIAL', severity: 'high', sub: 'contradicts', start: m.index, end: m.index + m[0].length, text: m[0],
+          title: 'Trial length doesn’t match the approved fact',
+          why: 'Approved: ' + ft.value + '-day free trial. Source: ' + ft.source + '.',
+          clause: ft.clause || 'F-5.1', fix: { kind: 'replace', text: String(ft.value) }, keep: 'Same sentence with the correct trial length.',
+        });
+      }
+    }
+
+    /* messaging: required disclaimers */
+    for (const d of kit.disclaimers) {
+      let trig, ok;
+      try { trig = text.match(new RegExp(d.trigger, 'i')); ok = new RegExp(d.test, 'i').test(text); } catch (e) { continue; }
+      if (trig && !ok) {
+        add({
+          rule: d.rule, severity: d.severity || 'medium', start: trig.index, end: trig.index + trig[0].length, text: trig[0],
+          title: d.title, why: d.why, clause: d.clause,
+          fix: { kind: 'append', text: d.required, sep: '\n\n' }, keep: 'Adds the required line at the end. Your message is unchanged.',
+        });
+      }
+    }
+    /* messaging: full product name on first mention */
+    if ((brand.fullNameChannels || []).includes(ctx.channel) && brand.full) {
+      const re = new RegExp('(?<![\\w#@./-])' + escRe(brand.short) + '(?!\\s+(?:Budget|Plus)\\b)(?![\\w.@/-])', 'g');
+      const first = [...text.matchAll(re)][0];
+      if (first && !new RegExp(escRe(brand.full)).test(text)) {
+        add({
+          rule: 'MSG-NAME', severity: 'low', start: first.index, end: first.index + first[0].length, text: first[0],
+          title: 'Use “' + brand.full + '” on first mention',
+          why: 'In ' + ctx.channel.toLowerCase() + ' copy the full product name appears first, then “' + brand.short + '” is fine.',
+          clause: 'M-3.3', fix: { kind: 'replace', text: brand.full }, keep: 'Only adds the full name.', safe: true,
+        });
+      }
+    }
+
+    /* confidentiality */
+    const piiDefs = [
+      [/\b\d{4}\s\d{4}\s\d{4}\b/g, 'a 12-digit ID number'],
+      [/\b(?:\d[ -]?){13,16}\b/g, 'a card-like number'],
+      [/(?<![\w@])(?:\+?91[\s-]?)?[6-9]\d{9}\b/g, 'a phone number'],
+      [/\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g, 'an email address'],
+      [/\b(confidential|internal only|do not share|not for release|embargo(?:ed)?)\b/gi, 'a confidentiality marking'],
+    ];
+    const piiKept = [];
+    for (const [re, label] of piiDefs) {
+      for (const m of text.matchAll(re)) {
+        const s = m.index, e = s + m[0].length;
+        if ((kit.allowedEmails || []).includes(m[0].toLowerCase())) continue;
+        if (piiKept.some(([a, b]) => s < b && e > a)) continue;
+        piiKept.push([s, e]);
+        add({
+          rule: 'CONF-PII', severity: 'high', noDismiss: true, start: s, end: e, text: m[0],
+          title: 'Contains ' + label,
+          why: 'Public content must not include personal data or material marked confidential. This finding can’t be dismissed, only fixed.',
+          clause: 'P-8.1', fix: { kind: 'delete' }, keep: 'Removes only the sensitive text.',
+        });
+      }
+    }
+
+    /* accessibility */
+    const rd = readability(text);
+    if (rd.words >= 25 && rd.score < 50) {
+      add({
+        rule: 'A11Y-READ', severity: 'medium', text: 'Reading ease ' + rd.score, title: 'Hard to read: reading ease ' + rd.score + ' (target 60+)',
+        why: 'Long sentences and long words make the text hard to read for many members. Aim for a reading ease of 60 or more.',
+        clause: 'A-6.1', keep: 'Split long sentences and swap long words for short ones.',
+      });
+    }
+    for (const s of sentences(text)) {
+      const wc = (s.text.match(/[A-Za-z0-9'’-]+/g) || []).length;
+      if (wc > 28) {
+        add({
+          rule: 'A11Y-LONG', severity: 'low', start: s.start, end: s.end, text: s.text,
+          title: 'Very long sentence (' + wc + ' words)',
+          why: 'Keep sentences under 25 words so they are easy to follow and easy to read aloud.', clause: 'A-6.1', keep: 'Split it into two sentences.',
+        });
+      }
+    }
+    for (const m of text.matchAll(/#[A-Za-z][A-Za-z0-9]*/g)) {
+      const tag = m[0].slice(1);
+      if (tag !== tag.toLowerCase() || tag.length < 9) continue;
+      const seg = segment(tag.toLowerCase());
+      const cap = (w) => w[0].toUpperCase() + w.slice(1);
+      if (seg && seg.length > 1) {
+        add({
+          rule: 'A11Y-HASH', severity: 'low', start: m.index, end: m.index + m[0].length, text: m[0],
+          title: 'Write hashtags in CamelCase',
+          why: 'Screen readers read #' + tag + ' as one long word. CamelCase lets them read each word.',
+          fix: { kind: 'replace', text: '#' + seg.map(cap).join('') }, keep: 'Same hashtag, easier to read.', safe: true,
+        });
+      } else if (!seg && tag.length >= 12) {
+        add({
+          rule: 'A11Y-HASH', severity: 'low', start: m.index, end: m.index + m[0].length, text: m[0],
+          title: 'Write hashtags in CamelCase',
+          why: 'Capitalise each word so screen readers can read it.', keep: 'Same hashtag with capital letters at each word.',
+        });
+      }
+    }
+    for (const m of text.matchAll(/\b(click|tap)\s+here(\s+to\s+(\w))?|\bread more\b/gi)) {
+      const fix = m[3] ? { kind: 'replace', text: m[3].toUpperCase() } : null;
+      add({
+        rule: 'A11Y-LINK', severity: 'low', start: m.index, end: m.index + m[0].length, text: m[0],
+        title: 'Use descriptive link text',
+        why: 'Screen reader users often jump from link to link. “' + m[0] + '” says nothing about where it leads.',
+        fix, keep: fix ? 'Starts the sentence with the action.' : 'Name the destination, for example “Join Lumo Plus”.',
+      });
+    }
+    const run = text.match(/(?:\p{Extended_Pictographic}️?){3,}/u);
+    if (run) {
+      const first = run[0].match(/^\p{Extended_Pictographic}️?/u)[0];
+      add({
+        rule: 'A11Y-EMOJI', severity: 'low', start: run.index, end: run.index + run[0].length, text: run[0],
+        title: 'Too many emoji in a row',
+        why: 'Screen readers read out every emoji by name. Keep it to one or two.',
+        fix: { kind: 'replace', text: first }, keep: 'Keeps one emoji for tone.', safe: true,
+      });
+    }
+
+    return { findings: dedupe(out), stats: Object.assign(stats, { reading: rd.score, words: rd.words }) };
+  }
+
+  /* keep the strongest finding when two of the same category overlap */
+  function dedupe(list) {
+    const sorted = list.slice().sort((a, b) => SEV[b.severity] - SEV[a.severity] || b.end - b.start - (a.end - a.start));
+    const kept = [];
+    for (const f of sorted) {
+      if (f.start >= 0 && kept.some((k) => k.start >= 0 && k.category === f.category && f.start < k.end && f.end > k.start)) continue;
+      kept.push(f);
+    }
+    return kept.sort((a, b) => (a.start < 0) - (b.start < 0) || a.start - b.start);
+  }
+
+  /* ---------- visual details ---------- */
+  function analyzeVisual(v, kit) {
+    const out = [];
+    if (!v) return out;
+    const add = (o) => out.push(F(o));
+    if (v.hasImage) {
+      const alt = (v.alt || '').trim();
+      if (!alt) {
+        add({ rule: 'A11Y-ALT', severity: 'high', text: 'missing alt text', title: 'Image has no alt text',
+          why: 'People who use screen readers get nothing from an image without alt text. Describe what the image shows and why it is there.',
+          clause: 'A-6.2', keep: 'Write one short sentence, for example “Students at a campus stall comparing budget plans.”', field: 'alt' });
+      } else if (alt.split(/\s+/).length < 4 || /^(image|photo|picture|graphic)\s+of\b/i.test(alt)) {
+        add({ rule: 'A11Y-ALT', severity: 'medium', text: 'weak alt text', title: 'Alt text is too short or starts with “image of”',
+          why: 'Screen readers already announce that it is an image. Say what it shows in at least four words.', clause: 'A-6.2',
+          keep: 'Describe the content and purpose.', field: 'alt' });
+      }
+    }
+    if (v.fg && v.bg && hexToRgb(v.fg) && hexToRgb(v.bg)) {
+      const ratio = contrast(v.fg, v.bg), need = v.large ? 3 : 4.5;
+      if (ratio < need) {
+        const sg = suggestTextColor(v.fg, v.bg, v.large, kit);
+        add({ rule: 'A11Y-CON', severity: ratio < 3 ? 'high' : 'medium', text: 'contrast ' + ratio.toFixed(2),
+          title: 'Text colour contrast is ' + ratio.toFixed(2) + ':1 (needs ' + need + ':1)',
+          why: v.fg.toUpperCase() + ' on ' + v.bg.toUpperCase() + ' is hard to read, especially on a phone in daylight.',
+          clause: 'A-6.3', fix: sg ? { kind: 'visual', set: { fg: sg.hex }, text: sg.name + ' ' + sg.hex } : null,
+          keep: sg ? 'Uses the brand colour closest to your current one that passes.' : 'Pick a darker or lighter text colour.' });
+      }
+    }
+    if (v.logo && v.logo !== 'none') {
+      const bgRgb = hexToRgb(v.bg || '');
+      const lum = bgRgb ? luminance(bgRgb) : null;
+      if (v.logo === 'old') {
+        add({ rule: 'VIS-LOGO', severity: 'high', text: 'retired logo', title: 'Retired 2022 logo in use',
+          why: 'The 2022 logo was retired. Use the current full-colour logo on light backgrounds or the white logo on dark ones.', clause: 'VI-7.2',
+          fix: { kind: 'visual', set: { logo: lum !== null && lum < 0.35 ? 'mono' : 'full' }, text: lum !== null && lum < 0.35 ? 'White logo' : 'Full-colour logo' },
+          keep: 'Swaps the logo file only.' });
+      } else if (v.logo === 'altered') {
+        add({ rule: 'VIS-LOGO', severity: 'high', text: 'altered logo', title: 'Logo has been stretched or recoloured',
+          why: 'The logo is never stretched, rotated or recoloured.', clause: 'VI-7.2',
+          fix: { kind: 'visual', set: { logo: lum !== null && lum < 0.35 ? 'mono' : 'full' }, text: 'Original logo' }, keep: 'Uses the supplied logo file.' });
+      } else if (v.logo === 'full' && lum !== null && lum < 0.35) {
+        add({ rule: 'VIS-LOGO', severity: 'medium', text: 'full-colour on dark', title: 'Full-colour logo on a dark background',
+          why: 'On dark backgrounds use the white version of the logo.', clause: 'VI-7.2',
+          fix: { kind: 'visual', set: { logo: 'mono' }, text: 'White logo' }, keep: 'Swaps the logo file only.' });
+      } else if (v.logo === 'mono' && lum !== null && lum > 0.6) {
+        add({ rule: 'VIS-LOGO', severity: 'medium', text: 'white logo on light', title: 'White logo on a light background',
+          why: 'The white logo disappears on light backgrounds. Use the full-colour version.', clause: 'VI-7.2',
+          fix: { kind: 'visual', set: { logo: 'full' }, text: 'Full-colour logo' }, keep: 'Swaps the logo file only.' });
+      }
+    }
+    if (v.hasImage && v.palette && v.palette.colors && !v.palette.photographic) {
+      for (const c of v.palette.colors) {
+        if (c.share < 0.12) continue;
+        const nb = nearestBrand(c.hex, kit);
+        if (nb.d > 18) {
+          add({ rule: 'VIS-PAL', severity: 'medium', text: 'off-palette ' + c.hex, title: 'Off-brand colour ' + c.hex + ' covers ' + Math.round(c.share * 100) + '% of the image',
+            why: 'The brand palette has four colours. The closest is ' + nb.name + ' ' + nb.hex + ', and it is still clearly different (ΔE ' + Math.round(nb.d) + ').',
+            clause: 'VI-7.1', keep: 'Recolour the design with ' + nb.name + ' ' + nb.hex + ' or another palette colour.' });
+        }
+      }
+    }
+    return out;
+  }
+
+  /* ---------- AI second opinion ---------- */
+  function maskPII(text) {
+    return text
+      .replace(/\b\d{4}\s\d{4}\s\d{4}\b/g, '[ID NUMBER]')
+      .replace(/\b(?:\d[ -]?){13,16}\b/g, '[CARD NUMBER]')
+      .replace(/(?<![\w@])(?:\+?91[\s-]?)?[6-9]\d{9}\b/g, '[PHONE]')
+      .replace(/\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g, '[EMAIL]');
+  }
+
+  function validateAI(raw, text, kit) {
+    const ids = new Set(kit.clauses.map((c) => c.id));
+    const ok = [], dropped = [];
+    for (const r of Array.isArray(raw) ? raw : []) {
+      const why = !r || typeof r.span !== 'string' || !r.span.trim() ? 'No quoted text'
+        : text.indexOf(r.span) < 0 ? 'Quoted text is not in the draft'
+        : !ids.has(r.clauseId) ? 'Cites a guideline that does not exist'
+        : typeof r.reason !== 'string' || !r.reason.trim() ? 'No explanation' : null;
+      if (why) { dropped.push({ span: r && r.span, why }); continue; }
+      ok.push({
+        span: r.span, clauseId: r.clauseId,
+        category: CATEGORIES.includes(r.category) ? r.category : 'tone',
+        severity: SEV[r.severity] ? r.severity : 'medium',
+        reason: r.reason.trim(), suggestion: typeof r.suggestion === 'string' ? r.suggestion : '',
+        confidence: Math.max(0, Math.min(1, Number(r.confidence) || 0.5)),
+      });
+    }
+    return { ok, dropped };
+  }
+
+  function aiToFindings(items, text) {
+    const out = [];
+    for (const it of items || []) {
+      const s = text.indexOf(it.span);
+      if (s < 0) continue;
+      const low = it.confidence < 0.6;
+      out.push(F({
+        rule: 'AI-REV', source: 'ai', category: it.category, clause: it.clauseId, severity: low ? 'low' : it.severity,
+        start: s, end: s + it.span.length, text: it.span, conf: it.confidence, lowConf: low,
+        title: it.reason.length > 90 ? it.reason.slice(0, 87) + '…' : it.reason, why: it.reason,
+        fix: it.suggestion && it.suggestion !== it.span ? { kind: 'replace', text: it.suggestion } : null,
+        keep: 'Suggested by the AI to fit your goal. Review before using.',
+      }));
+    }
+    return out;
+  }
+
+  /* ---------- apply a fix ---------- */
+  function applyFix(text, f) {
+    const fx = f.fix;
+    if (!fx) return text;
+    if (fx.kind === 'append') return text.replace(/\s+$/, '') + (fx.sep !== undefined ? fx.sep : '\n\n') + fx.text;
+    if (fx.kind !== 'replace' && fx.kind !== 'delete') return text;
+    let before = text.slice(0, f.start), after = text.slice(f.end);
+    if (fx.kind === 'delete') {
+      if (/\s$/.test(before) && /^\s/.test(after)) after = after.replace(/^\s+/, '');
+      else if (/\s$/.test(before) && /^[.,!?;:]/.test(after)) before = before.replace(/\s+$/, '');
+      if (/(^|[.!?\n]\s*)$/.test(before) && /^[a-z]/.test(after)) after = after[0].toUpperCase() + after.slice(1);
+      return before + after;
+    }
+    return before + fx.text + after;
+  }
+
+  /* ---------- word diff ---------- */
+  function diffWords(a, b) {
+    const ta = a.match(/\s+|[\w’'-]+|[^\w\s]/g) || [], tb = b.match(/\s+|[\w’'-]+|[^\w\s]/g) || [];
+    const n = ta.length, m = tb.length;
+    const dp = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+    for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+      dp[i][j] = ta[i] === tb[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    const ops = [];
+    let i = 0, j = 0;
+    const push = (t, v) => { const l = ops[ops.length - 1]; if (l && l.t === t) l.v += v; else ops.push({ t, v }); };
+    while (i < n && j < m) {
+      if (ta[i] === tb[j]) { push('eq', ta[i]); i++; j++; }
+      else if (dp[i + 1][j] >= dp[i][j + 1]) { push('del', ta[i]); i++; }
+      else { push('ins', tb[j]); j++; }
+    }
+    while (i < n) push('del', ta[i++]);
+    while (j < m) push('ins', tb[j++]);
+    return ops;
+  }
+
+  return {
+    RULES, CATEGORIES, SEV, analyze, analyzeVisual, applyFix, diffWords, readability, contrast, deltaE, nearestBrand,
+    suggestTextColor, paletteFromPixels, maskPII, validateAI, aiToFindings, hexToRgb, luminance, sentences, fmtNum,
+  };
+});
+
+</script>
+<script>
+/*  Demo workspace data: a fictional brand (Lumo Budget), its Brand Kit, sample reviews and sample history. */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.BrandLensKit = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  const CHANNELS = ['Social post', 'Email', 'Ad', 'Press note', 'Web copy'];
+
+  function defaultKit() {
+    return {
+      version: 3,
+      name: 'Lumo Budget',
+      brand: { short: 'Lumo', full: 'Lumo Budget', plus: 'Lumo Plus', fullNameChannels: ['Email', 'Press note', 'Web copy'] },
+      capsAllow: ['UPI', 'KYC', 'OTP', 'FAQ', 'SMS', 'PDF', 'ATM', 'NEFT', 'IMPS', 'PAN', 'EMI', 'GST', 'AI', 'USD', 'INR', 'IST'],
+      allowedEmails: ['hello@lumo.example', 'support@lumo.example'],
+      clauses: [
+        { id: 'V-1.1', group: 'Voice', title: 'Friendly, plain and calm', text: 'Write like a helpful senior student: short sentences, everyday words, no pressure.' },
+        { id: 'V-1.2', group: 'Voice', title: 'No hype', text: 'No more than one exclamation mark per post. No ALL CAPS. Avoid hype words such as “amazing” or “instantly”.' },
+        { id: 'V-1.3', group: 'Voice', title: 'No corporate jargon', text: 'Avoid buzzwords such as “synergy”, “leverage” and “cutting-edge”. Say the plain thing.' },
+        { id: 'V-1.4', group: 'Voice', title: 'Formal channels stay formal', text: 'Emails and press notes avoid slang. Casual language is fine on social posts.' },
+        { id: 'T-2.1', group: 'Terminology', title: 'Members, not customers', text: 'Call people “members”. Never “customers” or “users” in public copy.' },
+        { id: 'T-2.2', group: 'Terminology', title: 'Product names', text: 'The paid plan is “Lumo Plus”. Never “Lumo Pro”, “Lumo Premium” or “Lumo+”.' },
+        { id: 'T-2.3', group: 'Terminology', title: 'Brand name capitalisation', text: 'Write “Lumo”. Never “lumo” or “LUMO”.' },
+        { id: 'M-3.1', group: 'Messaging', title: 'Money content needs the disclaimer', text: 'Any content about investing, loans, stocks or interest must include: “Lumo is a budgeting tool, not a financial advisor.”' },
+        { id: 'M-3.2', group: 'Messaging', title: 'Offers need terms', text: 'Any offer, discount or free trial must say “Terms apply.”' },
+        { id: 'M-3.3', group: 'Messaging', title: 'Full name on first mention', text: 'Emails, press notes and web copy use “Lumo Budget” on first mention.' },
+        { id: 'C-4.1', group: 'Claims', title: 'Claims need a source', text: 'Every ranking, comparison or number about savings or performance needs an approved source in the Claims register.' },
+        { id: 'C-4.2', group: 'Claims', title: 'Prohibited promises', text: 'No guarantees, “risk-free”, “get rich” promises, “military-grade” security or comparisons that name other apps.' },
+        { id: 'F-5.1', group: 'Facts', title: 'Facts must match the approved list', text: 'Prices, member counts, dates and plan limits must match the Approved facts list.' },
+        { id: 'A-6.1', group: 'Accessibility', title: 'Readable text', text: 'Aim for a reading ease of 60 or more. Keep sentences under 25 words.' },
+        { id: 'A-6.2', group: 'Accessibility', title: 'Accessible details', text: 'CamelCase hashtags. No more than two emoji in a row. Descriptive link text. Every image has alt text.' },
+        { id: 'A-6.3', group: 'Accessibility', title: 'Colour contrast', text: 'Text must reach a 4.5:1 contrast ratio against its background (3:1 for large text).' },
+        { id: 'VI-7.1', group: 'Visual', title: 'Brand palette', text: 'Use Ink, Mint, Sunrise and Cloud. Other colours are for photographs only.' },
+        { id: 'VI-7.2', group: 'Visual', title: 'Logo use', text: 'Use the full-colour logo on light backgrounds and the white logo on dark ones. Never stretch or recolour it. The 2022 logo is retired.' },
+        { id: 'P-8.1', group: 'Privacy', title: 'No personal or confidential data', text: 'Never publish member personal data, internal-only numbers or anything marked confidential.' },
+      ],
+      glossary: [
+        { id: 'G-1', wrong: ['customers', 'customer', 'users', 'user'], right: 'members', rule: 'TERM-CUST', clause: 'T-2.1', note: 'We call the people who use Lumo “members”.' },
+        { id: 'G-2', wrong: ['Lumo Pro', 'Lumo Premium', 'Lumo+', 'Lumo Gold'], right: 'Lumo Plus', rule: 'TERM-NAME', clause: 'T-2.2', note: 'The paid plan is called Lumo Plus.' },
+        { id: 'G-3', wrong: ['cheap'], right: 'affordable', rule: 'TERM-GLO', clause: 'T-2.1', note: 'We say “affordable”, never “cheap”.' },
+      ],
+      banned: [
+        { phrase: 'amazing', kind: 'hype', suggest: 'useful' }, { phrase: 'incredible', kind: 'hype', suggest: 'helpful' },
+        { phrase: 'mind-blowing', kind: 'hype', suggest: 'helpful' }, { phrase: 'insane', kind: 'hype', suggest: '' },
+        { phrase: 'game-changer', kind: 'hype', suggest: 'useful tool' }, { phrase: 'revolutionary', kind: 'hype', suggest: 'new' },
+        { phrase: 'revolution', kind: 'hype', suggest: '' }, { phrase: 'must-have', kind: 'hype', suggest: 'handy' },
+        { phrase: 'life-changing', kind: 'hype', suggest: 'helpful' }, { phrase: 'unbelievable', kind: 'hype', suggest: '' },
+        { phrase: 'epic', kind: 'hype', suggest: '' }, { phrase: 'ultimate', kind: 'hype', suggest: '' },
+        { phrase: 'instantly', kind: 'hype', suggest: 'in a few taps' }, { phrase: 'magic', kind: 'hype', suggest: '' },
+        { phrase: 'synergy', kind: 'jargon', suggest: 'teamwork' }, { phrase: 'leverage', kind: 'jargon', suggest: 'use' },
+        { phrase: 'cutting-edge', kind: 'jargon', suggest: 'modern' }, { phrase: 'state-of-the-art', kind: 'jargon', suggest: 'modern' },
+        { phrase: 'best-in-class', kind: 'jargon', suggest: '' }, { phrase: 'seamless', kind: 'jargon', suggest: 'smooth' },
+        { phrase: 'robust', kind: 'jargon', suggest: 'reliable' }, { phrase: 'holistic', kind: 'jargon', suggest: 'complete' },
+        { phrase: 'empower', kind: 'jargon', suggest: 'help' }, { phrase: 'unlock', kind: 'jargon', suggest: 'get' },
+        { phrase: 'bro', kind: 'slang', suggest: '', channels: ['Email', 'Press note'] }, { phrase: 'dude', kind: 'slang', suggest: '', channels: ['Email', 'Press note'] },
+        { phrase: 'lit', kind: 'slang', suggest: 'great', channels: ['Email', 'Press note'] }, { phrase: 'gonna', kind: 'slang', suggest: 'going to', channels: ['Email', 'Press note'] },
+        { phrase: 'wanna', kind: 'slang', suggest: 'want to', channels: ['Email', 'Press note'] },
+      ],
+      facts: [
+        { key: 'plusPrice', label: 'Lumo Plus price (₹ per month)', value: 99, clause: 'F-5.1', source: 'Pricing page v4, updated Aug 2026' },
+        { key: 'userCount', label: 'Active student members (minimum)', value: 50000, clause: 'F-5.1', source: 'Product analytics, Sept 2026' },
+        { key: 'launchYear', label: 'Launch year', value: 2023, clause: 'F-5.1', source: 'Company fact sheet' },
+        { key: 'freeBudgets', label: 'Budgets on the free plan', value: 3, clause: 'F-5.1', source: 'Pricing page v4' },
+        { key: 'trialDays', label: 'Free trial length (days)', value: 14, clause: 'F-5.1', source: 'Pricing page v4' },
+      ],
+      claims: [
+        { id: 'AC-1', status: 'approved', text: 'No hidden fees', pattern: 'no hidden (?:fees|charges)', source: 'Pricing page v4' },
+        { id: 'AC-2', status: 'approved', text: 'Bank-grade encryption', pattern: 'bank[- ]grade (?:encryption|security)', source: 'Security whitepaper 2025' },
+        { id: 'AC-3', status: 'approved', text: 'Made for students', pattern: '(?:made|built) for students', source: 'Brand book' },
+        { id: 'AC-4', status: 'approved', text: 'Works with UPI', pattern: 'works with upi', source: 'Product spec 2.4' },
+        { id: 'PC-1', status: 'prohibited', text: 'guaranteed to', pattern: 'guarantee[sd]?\\s+to', suggest: 'designed to', why: 'Nothing in the product can be guaranteed to produce a result. “Designed to” is accurate.' },
+        { id: 'PC-2', status: 'prohibited', text: 'guaranteed / guarantee', pattern: '(?<![\\w])guarantee[sd]?(?![\\w])', suggest: '' },
+        { id: 'PC-3', status: 'prohibited', text: 'risk-free / zero risk', pattern: '(?<![\\w])(?:risk[- ]free|zero risk|no risk)(?![\\w])', suggest: '' },
+        { id: 'PC-4', status: 'prohibited', text: 'military-grade / unhackable', pattern: '(?<![\\w])(?:military[- ]grade|unhackable|100\\s?% secure)(?![\\w])', suggest: 'bank-grade', why: '“Military-grade” isn’t an approved security claim. “Bank-grade” is (AC-2).' },
+        { id: 'PC-5', status: 'prohibited', text: 'get rich / make you rich', pattern: '(?<![\\w])(?:get rich|make you rich|double your (?:money|savings)|financial freedom)(?![\\w])', suggest: 'help you manage money', why: 'Wealth promises are prohibited. Lumo helps people manage money.' },
+        { id: 'PC-6', status: 'prohibited', text: 'names a competitor', pattern: '(?<![\\w])(?:better than|beats|unlike)\\s+(?:gpay|google pay|phonepe|paytm)(?![\\w])', suggest: null, why: 'We do not compare ourselves with other apps by name.' },
+      ],
+      disclaimers: [
+        {
+          id: 'D-1', rule: 'MSG-FIN', severity: 'high', clause: 'M-3.1',
+          trigger: '\\b(?:invest(?:ing|ment|ments|or|ors)?|mutual funds?|stocks?|interest rates?|loans?|credit scores?|trading|crypto|returns?\\s+on|\\d+%\\s+returns?)\\b',
+          test: 'not a financial advis[eo]r',
+          required: 'Lumo is a budgeting tool, not a financial advisor.',
+          title: 'Finance content needs the disclaimer',
+          why: 'This text talks about money products. Guideline M-3.1 requires the line “Lumo is a budgeting tool, not a financial advisor.”',
+        },
+        {
+          id: 'D-2', rule: 'MSG-TERMS', severity: 'medium', clause: 'M-3.2',
+          trigger: '\\b(?:offers?|discounts?|\\d+\\s?%\\s+off|free trial|limited[- ]time|cashback|coupon)\\b',
+          test: 'terms apply|t&c|terms and conditions',
+          required: 'Terms apply.',
+          title: 'Offer needs “Terms apply”',
+          why: 'Offers, discounts and free trials must say “Terms apply.” (guideline M-3.2).',
+        },
+      ],
+      palette: [
+        { name: 'Ink', hex: '#1B1F4B', use: 'Text, headers' },
+        { name: 'Mint', hex: '#2BD4A6', use: 'Accents, success' },
+        { name: 'Sunrise', hex: '#FFB547', use: 'Highlights, offers' },
+        { name: 'Cloud', hex: '#F4F6FB', use: 'Backgrounds' },
+      ],
+      changelog: [
+        { at: Date.now() - 1000 * 3600 * 24 * 12, by: 'Manish Rao', text: 'Updated Lumo Plus price to ₹99 per month' },
+        { at: Date.now() - 1000 * 3600 * 24 * 40, by: 'Manish Rao', text: 'Added claims register and prohibited list' },
+      ],
+    };
+  }
+
+  /* Sample history: 6 weeks of resolved findings for the Insights page. */
+  function seedEvents() {
+    const table = [
+      ['CLM-SUP', 14, 11], ['CLM-NUM', 9, 7], ['CLM-PRO', 6, 6], ['TERM-CUST', 12, 10], ['TERM-CAP', 7, 6],
+      ['TONE-HYPE', 13, 5], ['TONE-EXCL', 8, 3], ['TONE-CAPS', 6, 5], ['FACT-PRICE', 4, 4], ['FACT-USERS', 5, 4],
+      ['A11Y-HASH', 10, 9], ['A11Y-READ', 9, 4], ['MSG-FIN', 6, 5], ['MSG-TERMS', 7, 6], ['VIS-LOGO', 4, 3],
+      ['A11Y-ALT', 7, 6], ['A11Y-CON', 5, 4], ['CONF-PII', 3, 3],
+    ];
+    const teams = ['Campus', 'Marketing', 'Support'];
+    const events = [];
+    let seed = 7;
+    const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+    for (const [rule, det, acc] of table) {
+      for (let i = 0; i < det; i++) {
+        const w = Math.min(5, Math.floor(Math.pow(rnd(), 0.8) * 6));
+        events.push({ w, team: teams[Math.floor(rnd() * (rule.startsWith('CLM') ? 2 : 3)) % 3], rule, outcome: i < acc ? 'accepted' : 'dismissed' });
+      }
+    }
+    return events;
+  }
+  const SEED_REVIEWS_PER_WEEK = [14, 17, 19, 22, 21, 24];
+  const SEED_CLEAN_RATE = [0.18, 0.22, 0.27, 0.31, 0.36, 0.41];
+
+  const HERO_TEXT =
+    '🔥🔥🔥 BACK TO COLLEGE SALE!!! lumo is the #1 budgeting app in India and saves you 40% instantly! ' +
+    'Our customers love it – over 2 lakh students already use it, and it is guaranteed to make you rich.\n\n' +
+    'Get Lumo Plus for just ₹149 per month with a 30-day free trial. Invest your savings smartly and never worry about money again. ' +
+    'Click here to join the revolution: https://lumo.example/plus\n\n#lumobudget #backtocollege';
+
+  function seedSubmissions(now) {
+    const H = 3600 * 1000;
+    const riya = { name: 'Riya Sharma', role: 'creator' }, manish = { name: 'Manish Rao', role: 'manager' }, kavita = { name: 'Kavita Nair', role: 'reviewer' };
+    const ev = (t, who, type, text) => ({ at: now - t * H, by: who.name, role: who.role, type, text });
+    return [
+      {
+        id: 's-hero', title: 'Back-to-college promo post', channel: 'Social post', team: 'Campus', author: riya, status: 'draft',
+        goal: 'Get students to try Lumo Plus before exams.', confidential: false,
+        draft: HERO_TEXT,
+        versions: [{ v: 1, text: HERO_TEXT, at: now - 5 * H, by: 'Riya Sharma', note: 'First draft' }],
+        visual: { hasImage: true, alt: '', fg: '#FFB547', bg: '#F4F6FB', large: false, logo: 'old', palette: null, thumb: null },
+        decisions: {}, ai: null, comments: [
+          { id: 'c1', at: now - 4 * H, by: 'Riya Sharma', role: 'creator', text: 'Draft for the back-to-college push. Poster is in the design folder, logo and colours still to confirm.' },
+        ],
+        audit: [ev(5, riya, 'created', 'Created the review')], updatedAt: now - 4 * H,
+      },
+      {
+        id: 's-email', title: 'Lumo Plus launch email', channel: 'Email', team: 'Marketing', author: riya, status: 'in_review',
+        goal: 'Tell existing members that Lumo Plus is available and invite them to start the trial.', confidential: false,
+        draft:
+          'Subject: Meet Lumo Plus\n\nHi there,\n\nLumo helps you see where your money goes. Today we are launching Lumo Plus, a paid plan for ₹99 per month with unlimited budgets, spending reports and shared budgets for hostel roommates.\n\n' +
+          'New members get a 14-day free trial. No hidden fees, and you can cancel any time.\n\nStart your trial from the Plus tab in the app.\n\nThe Lumo Budget team',
+        versions: [], visual: { hasImage: false, alt: '', fg: '#1B1F4B', bg: '#F4F6FB', large: false, logo: 'full', palette: null, thumb: null },
+        decisions: {}, ai: null, comments: [
+          { id: 'c2', at: now - 20 * H, by: 'Riya Sharma', role: 'creator', text: 'Second version. I fixed the price and the trial length from Manish’s note.' },
+          { id: 'c3', at: now - 3 * H, by: 'Kavita Nair', role: 'reviewer', text: 'Facts match the pricing page. Please check the “unlimited” wording with product before this goes out.' },
+        ],
+        audit: [ev(44, riya, 'created', 'Created the review'), ev(40, riya, 'submitted', 'Submitted version 1 for review'), ev(30, manish, 'changes', 'Requested changes: price and trial length were out of date'), ev(20, riya, 'submitted', 'Submitted version 2 for review')],
+        updatedAt: now - 3 * H,
+      },
+      {
+        id: 's-press', title: '50,000 members milestone press note', channel: 'Press note', team: 'Marketing', author: riya, status: 'changes_requested',
+        goal: 'Announce the member milestone to campus and tech media.', confidential: false,
+        draft:
+          'Mumbai: Lumo, India’s leading budgeting app for students, today announced that more than 50,000 students now use it every month.\n\n' +
+          'Launched in 2022 as a small project at a Mumbai college, Lumo now helps customers plan pocket money, split hostel costs and save towards goals. “We built Lumo because budgeting should feel calm, not stressful,” said the founding team.\n\n' +
+          'Lumo Plus, the paid plan, costs ₹99 per month and includes a 14-day free trial. Terms apply.',
+        versions: [], visual: { hasImage: false, alt: '', fg: '#1B1F4B', bg: '#FFFFFF', large: false, logo: 'full', palette: null, thumb: null },
+        decisions: {}, ai: null, comments: [
+          { id: 'c4', at: now - 26 * H, by: 'Manish Rao', role: 'manager', text: 'Please fix the launch year and drop “leading”. We can’t prove a ranking. Then resubmit.' },
+        ],
+        audit: [ev(60, riya, 'created', 'Created the review'), ev(50, riya, 'submitted', 'Submitted version 1 for review'), ev(26, manish, 'changes', 'Requested changes: launch year and “leading” claim')],
+        updatedAt: now - 26 * H,
+      },
+      {
+        id: 's-poster', title: 'Campus session poster caption', channel: 'Social post', team: 'Campus', author: riya, status: 'approved',
+        goal: 'Invite students to the Friday budgeting session.', confidential: false,
+        draft: 'Exam week is coming. Plan your pocket money with Lumo Budget and keep a little aside for chai. Join our campus session on Friday at 4 pm in Seminar Hall B.\n\n#LumoBudget #CampusLife',
+        versions: [], visual: { hasImage: true, alt: 'Poster with a cup of chai and the words Plan your pocket money on a light background', fg: '#1B1F4B', bg: '#F4F6FB', large: true, logo: 'full', palette: null, thumb: null },
+        decisions: {}, ai: null, comments: [{ id: 'c5', at: now - 70 * H, by: 'Manish Rao', role: 'manager', text: 'Clean. Approved.' }],
+        audit: [ev(80, riya, 'created', 'Created the review'), ev(76, riya, 'submitted', 'Submitted version 1 for review'), ev(70, manish, 'approved', 'Approved version 1')],
+        updatedAt: now - 70 * H, approvedBy: 'Manish Rao',
+      },
+      {
+        id: 's-webinar', title: 'Internship budgeting webinar invite', channel: 'Email', team: 'Campus', author: riya, status: 'approved',
+        goal: 'Get final-year students to register for the webinar.', confidential: false,
+        draft:
+          'Subject: Free webinar: budgeting for your first internship\n\nHello,\n\nJoin us on 12 November at 6 pm for a free, 45-minute session on planning your first stipend. You will learn how to split your money into needs, wants and savings, and how to track it with Lumo Budget.\n\nSave your seat on the registration page.',
+        versions: [], visual: { hasImage: false, alt: '', fg: '#1B1F4B', bg: '#FFFFFF', large: false, logo: 'full', palette: null, thumb: null },
+        decisions: {}, ai: null, comments: [],
+        audit: [ev(120, riya, 'created', 'Created the review'), ev(110, riya, 'submitted', 'Submitted version 1 for review'), ev(100, manish, 'approved', 'Approved version 1')],
+        updatedAt: now - 100 * H, approvedBy: 'Manish Rao',
+      },
+    ].map((s) => {
+      if (!s.versions.length) s.versions = [{ v: 1, text: s.draft, at: s.updatedAt - H, by: s.author.name, note: s.status === 'in_review' ? 'Submitted for review' : 'First draft' }];
+      return s;
+    });
+  }
+
+  return { CHANNELS, defaultKit, seedEvents, seedSubmissions, SEED_REVIEWS_PER_WEEK, SEED_CLEAN_RATE, HERO_TEXT };
+});
+
+</script>
+<script>
+(function () {
+  'use strict';
+/* ===== state.js: data, persistence, analysis cache and actions ===== */
+const E = window.BrandLensEngine, K = window.BrandLensKit;
+
+const ROLES = {
+  creator: { label: 'Creator', name: 'Riya Sharma', unit: 'Campus Marketing' },
+  manager: { label: 'Brand Manager', name: 'Manish Rao', unit: 'Brand team' },
+  reviewer: { label: 'Reviewer', name: 'Kavita Nair', unit: 'Legal and claims' },
+};
+const STATUS = {
+  draft: { label: 'Draft', cls: 'st-draft' },
+  in_review: { label: 'In review', cls: 'st-review' },
+  changes_requested: { label: 'Changes requested', cls: 'st-changes' },
+  approved: { label: 'Approved', cls: 'st-ok' },
+  rejected: { label: 'Rejected', cls: 'st-rej' },
+};
+const CAT_LABEL = {
+  tone: 'Tone', terminology: 'Terminology', messaging: 'Messaging', facts: 'Facts', claims: 'Claims',
+  accessibility: 'Accessibility', visual: 'Visual', confidentiality: 'Confidential',
+};
+const SEV_LABEL = { high: 'High', medium: 'Medium', low: 'Low' };
+const KEY = 'brandlens.round2.v1';
+
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = (p) => p + Math.random().toString(36).slice(2, 8);
+
+function fresh() {
+  const now = Date.now();
+  return { v: 1, role: 'creator', kit: K.defaultKit(), subs: K.seedSubmissions(now), events: K.seedEvents(), tour: {}, tourHidden: false };
+}
+function loadData() {
+  try {
+    const j = localStorage.getItem(KEY);
+    if (j) {
+      const d = JSON.parse(j);
+      if (d && d.v === 1 && d.kit && d.subs) return d;
+    }
+  } catch (e) { /* storage unavailable: run from memory */ }
+  return null;
+}
+let D = loadData() || fresh();
+function save() { try { localStorage.setItem(KEY, JSON.stringify(D)); } catch (e) { /* ignore */ } }
+
+const UI = {
+  view: 'queue', sel: null, tab: 'comments', sev: 'all', openOnly: false, editing: false, filter: 'all',
+  kitTab: 'guidelines', dismissing: null, active: null, diffV: null, ai: null, note: '', cdraft: '', cref: null,
+  newOpen: false, newText: '', flash: null, kitFocus: null,
+};
+
+/* ----- time ----- */
+function rel(ts) {
+  const m = Math.round((Date.now() - ts) / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return m + ' min ago';
+  const h = Math.round(m / 60);
+  if (h < 24) return h + ' h ago';
+  const d = Math.round(h / 24);
+  return d + (d === 1 ? ' day ago' : ' days ago');
+}
+function stamp(ts) {
+  return new Date(ts).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+}
+
+/* ----- lookups ----- */
+const me = () => ROLES[D.role];
+const getSub = (id) => D.subs.find((s) => s.id === id);
+const clauseOf = (id) => D.kit.clauses.find((c) => c.id === id);
+const editable = (s) => D.role === 'creator' && (s.status === 'draft' || s.status === 'changes_requested');
+function log(sub, type, text) {
+  sub.audit.push({ at: Date.now(), by: me().name, role: D.role, type, text });
+  sub.updatedAt = Date.now();
+}
+function recordEvent(sub, f, outcome) {
+  D.events.push({ w: 5, team: sub.team, rule: f.rule, outcome, live: true });
+}
+
+/* ----- analysis (cached per draft + visual + kit + AI) ----- */
+const cache = new Map();
+function analysis(sub) {
+  const sig = [sub.draft, JSON.stringify(Object.assign({}, sub.visual, { thumb: 0 })), D.kit.version, sub.channel, JSON.stringify(sub.ai && sub.ai.items), JSON.stringify(sub.decisions)].join('␟');
+  const c = cache.get(sub.id);
+  if (c && c.sig === sig) return c;
+  const base = E.analyze(sub.draft, D.kit, { channel: sub.channel });
+  const ai = (sub.ai ? E.aiToFindings(sub.ai.items, sub.draft) : []).filter((a) => !base.findings.some((f) => f.start >= 0 && a.start < f.end && a.end > f.start));
+  const ranged = base.findings.filter((f) => f.start >= 0).concat(ai).sort((a, b) => a.start - b.start);
+  const doc = base.findings.filter((f) => f.start < 0);
+  const vis = E.analyzeVisual(sub.visual, D.kit);
+  const findings = ranged.concat(doc, vis);
+  const seen = {};
+  findings.forEach((f) => {
+    f.decision = sub.decisions[f.key] || null;
+    seen[f.id] = (seen[f.id] || 0) + 1;
+    if (seen[f.id] > 1) f.id += '#' + seen[f.id];
+  });
+  const open = findings.filter((f) => !f.decision);
+  const res = {
+    sig, findings, stats: base.stats,
+    open, openHigh: open.filter((f) => f.severity === 'high'),
+    count: { high: open.filter((f) => f.severity === 'high').length, medium: open.filter((f) => f.severity === 'medium').length, low: open.filter((f) => f.severity === 'low').length },
+    needsAck: findings.filter((f) => f.decision && f.severity === 'high' && !f.decision.ack),
+  };
+  cache.set(sub.id, res);
+  return res;
+}
+
+/* ----- actions ----- */
+function toast(msg, kind) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + (kind || '');
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => (t.className = ''), 3600);
+}
+function tourMark(k) { if (!D.tour[k]) { D.tour[k] = true; } }
+
+function applyFinding(sub, f) {
+  if (!f.fix) return;
+  if (f.fix.kind === 'visual') {
+    Object.assign(sub.visual, f.fix.set);
+    log(sub, 'fix', 'Applied visual fix: ' + f.fix.text);
+  } else {
+    sub.draft = E.applyFix(sub.draft, f);
+    log(sub, 'fix', 'Applied fix for “' + (f.text || f.title).slice(0, 40) + '” (' + f.rule + ')');
+  }
+  recordEvent(sub, f, 'accepted');
+  tourMark('applied');
+  UI.active = null;
+}
+
+function dismissFinding(sub, f, reason) {
+  if (f.noDismiss) { toast('This finding can’t be dismissed. Fix it instead.', 'bad'); return false; }
+  if (!reason || reason.trim().length < 4) { toast('Add a short reason first. It goes in the audit trail.', 'bad'); return false; }
+  sub.decisions[f.key] = { state: 'dismissed', reason: reason.trim(), by: me().name, at: Date.now(), ack: f.severity !== 'high' ? true : null, ackBy: null };
+  log(sub, 'dismiss', 'Dismissed “' + (f.text || f.title).slice(0, 40) + '” (' + f.rule + '): ' + reason.trim());
+  recordEvent(sub, f, 'dismissed');
+  tourMark('applied');
+  return true;
+}
+
+function applySafe(sub) {
+  let n = 0;
+  for (let guard = 0; guard < 40; guard++) {
+    const A = analysis(sub);
+    const f = A.open.find((x) => x.safe && x.fix && x.start >= 0);
+    if (!f) break;
+    applyFinding(sub, f);
+    n++;
+  }
+  return n;
+}
+
+function approvalBlockers(sub) {
+  const A = analysis(sub);
+  const out = [];
+  if (A.openHigh.length) out.push(A.openHigh.length + ' high-severity issue' + (A.openHigh.length > 1 ? 's' : '') + ' still open');
+  if (A.needsAck.length) out.push(A.needsAck.length + ' dismissed high-severity finding' + (A.needsAck.length > 1 ? 's' : '') + ' waiting for Reviewer sign-off');
+  return out;
+}
+
+function saveVersion(sub, note) {
+  const last = sub.versions[sub.versions.length - 1];
+  if (last && last.text === sub.draft) return false;
+  sub.versions.push({ v: sub.versions.length + 1, text: sub.draft, at: Date.now(), by: me().name, note: note || 'Saved version' });
+  log(sub, 'version', 'Saved version ' + sub.versions.length);
+  return true;
+}
+
+function setStatus(sub, status, text, type) {
+  sub.status = status;
+  log(sub, type || status, text);
+}
+
+function addComment(sub, text, ref) {
+  if (!text.trim()) return;
+  sub.comments.push({ id: uid('c'), at: Date.now(), by: me().name, role: D.role, text: text.trim(), ref: ref || null });
+  log(sub, 'comment', 'Commented' + (ref ? ' on a finding' : ''));
+}
+
+function newReview(f) {
+  const s = {
+    id: uid('s-'), title: f.title || 'Untitled review', channel: f.channel, team: f.team, author: { name: me().name, role: D.role },
+    status: 'draft', goal: f.goal || '', confidential: !!f.confidential, draft: f.text,
+    versions: [{ v: 1, text: f.text, at: Date.now(), by: me().name, note: 'First draft' }],
+    visual: { hasImage: false, alt: '', fg: '#1B1F4B', bg: '#FFFFFF', large: false, logo: 'none', palette: null, thumb: null },
+    decisions: {}, ai: null, comments: [], audit: [], updatedAt: Date.now(),
+  };
+  log(s, 'created', 'Created the review');
+  D.subs.unshift(s);
+  return s;
+}
+
+/* ----- files in ----- */
+function stripHtml(h) {
+  const d = new DOMParser().parseFromString(h.replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|div|h\d|li|tr)>/gi, '\n'), 'text/html');
+  d.querySelectorAll('script,style').forEach((n) => n.remove());
+  return (d.body.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
+}
+async function readDocx(file) {
+  const buf = await file.arrayBuffer(), dv = new DataView(buf);
+  let i = buf.byteLength - 22;
+  while (i >= 0 && dv.getUint32(i, true) !== 0x06054b50) i--;
+  if (i < 0) throw new Error('Not a .docx file');
+  const count = dv.getUint16(i + 10, true);
+  let p = dv.getUint32(i + 16, true);
+  for (let n = 0; n < count; n++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
+    const nlen = dv.getUint16(p + 28, true), elen = dv.getUint16(p + 30, true), clen = dv.getUint16(p + 32, true), lho = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(new Uint8Array(buf, p + 46, nlen));
+    if (name === 'word/document.xml') {
+      const start = lho + 30 + dv.getUint16(lho + 26, true) + dv.getUint16(lho + 28, true);
+      const raw = new Uint8Array(buf, start, csize);
+      let xml;
+      if (method === 0) xml = new TextDecoder().decode(raw);
+      else xml = await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+      return xml.replace(/<\/w:p>/g, '\n').replace(/<w:tab\/>/g, '\t').replace(/<w:br\/>/g, '\n').replace(/<[^>]+>/g, '')
+        .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&').trim();
+    }
+    p += 46 + nlen + elen + clen;
+  }
+  throw new Error('No text found in this .docx');
+}
+async function readTextFile(file) {
+  const n = file.name.toLowerCase();
+  if (n.endsWith('.docx')) return readDocx(file);
+  const t = await file.text();
+  if (n.endsWith('.html') || n.endsWith('.htm')) return stripHtml(t);
+  return t.trim();
+}
+
+/* ----- images ----- */
+function processImage(src) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => {
+      const w = Math.min(96, img.width), h = Math.max(1, Math.round((img.height * w) / img.width));
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const x = c.getContext('2d', { willReadFrequently: true });
+      x.drawImage(img, 0, 0, w, h);
+      const palette = E.paletteFromPixels(x.getImageData(0, 0, w, h).data);
+      const tw = 240, th = Math.max(1, Math.round((img.height * tw) / img.width));
+      const c2 = document.createElement('canvas');
+      c2.width = tw; c2.height = th;
+      c2.getContext('2d').drawImage(img, 0, 0, tw, th);
+      res({ palette, thumb: c2.toDataURL('image/jpeg', 0.72) });
+    };
+    img.onerror = () => rej(new Error('Could not read this image'));
+    img.src = src;
+  });
+}
+function samplePoster() {
+  const c = document.createElement('canvas');
+  c.width = 640; c.height = 360;
+  const x = c.getContext('2d');
+  x.fillStyle = '#6D3BEA'; x.fillRect(0, 0, 640, 360);
+  x.fillStyle = '#FF8A2B'; x.fillRect(0, 250, 640, 110);
+  x.fillStyle = '#FFFFFF'; x.font = '700 54px sans-serif'; x.fillText('BACK TO COLLEGE', 36, 120);
+  x.font = '700 40px sans-serif'; x.fillText('SALE', 36, 175);
+  x.fillStyle = '#1B1F4B'; x.font = '600 28px sans-serif'; x.fillText('Lumo Plus ₹99 / month', 36, 315);
+  return c.toDataURL('image/png');
+}
+
+/* ----- AI second opinion (optional, uses the host's Claude via the "sample" capability) ----- */
+let sampleFn;
+async function getSample() {
+  if (sampleFn !== undefined) return sampleFn;
+  try { sampleFn = (await (window.claude && window.claude.use && window.claude.use('sample'))) || null; } catch (e) { sampleFn = null; }
+  return sampleFn;
+}
+function buildPrompt(sub, A) {
+  const clauses = D.kit.clauses.map((c) => c.id + ' ' + c.title + ': ' + c.text).join('\n');
+  const facts = D.kit.facts.map((f) => f.label + ' = ' + f.value).join('\n');
+  const known = A.findings.filter((f) => f.source === 'rule' && f.start >= 0).map((f) => '- ' + f.rule + ': "' + f.text + '"').slice(0, 30).join('\n') || '- none';
+  return [
+    'You are a careful brand-compliance reviewer for the brand "' + D.kit.name + '". You are the SECOND reviewer: a rule engine already ran.',
+    'Find issues the rules cannot catch: a tone that does not fit the goal, misleading implications, confusing wording, claims implied but not stated.',
+    'You may only flag issues that a guideline clause below justifies.',
+    '', 'GUIDELINE CLAUSES:', clauses, '', 'APPROVED FACTS:', facts, '',
+    'ALREADY FOUND BY RULES (do not repeat):', known, '',
+    'CHANNEL: ' + sub.channel, 'CREATOR\'S GOAL: ' + (sub.goal || 'not stated'), '',
+    'DRAFT (between the markers):', '<<<', E.maskPII(sub.draft), '>>>', '',
+    'Return ONLY a JSON array with at most 5 items, no other text. Each item:',
+    '{"span": exact text copied from the draft, "clauseId": one of the clause ids above, "category": one of tone|terminology|messaging|facts|claims|accessibility|visual,',
+    ' "severity": "high"|"medium"|"low", "reason": one plain sentence saying why it breaks that clause,',
+    ' "suggestion": replacement for the span that keeps the creator\'s goal, or "" if none, "confidence": number from 0 to 1}',
+    'If you find nothing, return [].',
+  ].join('\n');
+}
+async function runAI(sub) {
+  const sample = await getSample();
+  if (!sample) { UI.ai = { id: sub.id, status: 'unavailable' }; return; }
+  const A = analysis(sub);
+  UI.ai = { id: sub.id, status: 'running' };
+  render();
+  try {
+    const res = await sample(buildPrompt(sub, A), { cache: false });
+    const m = (res.text || '').match(/\[[\s\S]*\]/);
+    if (!m) throw new Error('The AI did not return a list');
+    const raw = JSON.parse(m[0]);
+    const v = E.validateAI(raw, sub.draft, D.kit);
+    sub.ai = { items: v.ok, at: Date.now(), dropped: v.dropped.length };
+    log(sub, 'ai', 'AI second opinion: ' + v.ok.length + ' finding' + (v.ok.length === 1 ? '' : 's') + ' kept, ' + v.dropped.length + ' discarded (no valid source)');
+    tourMark('ai');
+    UI.ai = { id: sub.id, status: 'done', kept: v.ok.length, dropped: v.dropped };
+  } catch (e) {
+    UI.ai = { id: sub.id, status: 'error', msg: e && e.code === 'not_granted' ? 'Permission to use the AI was not given.' : e && e.code === 'rate_limited' ? 'The AI is busy. Try again in a minute.' : (e && e.message) || 'The AI call failed.' };
+  }
+  save();
+}
+
+/* ----- brand kit edits (Manager) ----- */
+function kitChange(text) {
+  D.kit.version++;
+  D.kit.changelog.unshift({ at: Date.now(), by: me().name, text });
+  save();
+}
+
+/* ----- insights ----- */
+function insights() {
+  const ev = D.events;
+  const byCat = {}, byRule = {}, weeks = new Array(6).fill(0);
+  ev.forEach((e) => {
+    const meta = E.RULES[e.rule] || {};
+    const cat = meta.category || 'tone';
+    byCat[cat] = (byCat[cat] || 0) + 1;
+    const r = (byRule[e.rule] = byRule[e.rule] || { rule: e.rule, n: 0, dis: 0, teams: {} });
+    r.n++;
+    if (e.outcome === 'dismissed') r.dis++;
+    r.teams[e.team] = (r.teams[e.team] || 0) + 1;
+    weeks[e.w] = (weeks[e.w] || 0) + 1;
+  });
+  const rules = Object.values(byRule).map((r) => {
+    const top = Object.entries(r.teams).sort((a, b) => b[1] - a[1])[0];
+    return Object.assign(r, { rate: r.n ? r.dis / r.n : 0, team: top ? top[0] : '-', meta: E.RULES[r.rule] || { label: r.rule, clause: '' } });
+  });
+  const total = ev.length, dis = ev.filter((e) => e.outcome === 'dismissed').length;
+  return { byCat, rules, weeks, total, dis, fixed: total - dis };
+}
+
+/* ===== views.js: rendering ===== */
+const IC = {
+  lens: '<svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><circle cx="14" cy="14" r="9" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M21 21l7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="14" cy="14" r="3.2" class="pen-dot"/></svg>',
+  check: '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  spark: '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 1l1.6 4.4L14 7l-4.4 1.6L8 13l-1.6-4.4L2 7l4.4-1.6z" fill="currentColor"/></svg>',
+  lock: '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  back: '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+const trunc = (s, n) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
+const statusPill = (s) => '<span class="pill ' + STATUS[s].cls + '">' + STATUS[s].label + '</span>';
+const isManager = () => D.role === 'manager';
+
+/* ---------- top bar ---------- */
+function renderTop() {
+  const nav = [['queue', 'Reviews'], ['kit', 'Brand Kit'], ['insights', 'Insights'], ['about', 'How it works']];
+  document.getElementById('top').innerHTML =
+    '<div class="top-in">' +
+    '<a class="logo" href="#queue" data-act="nav" data-v="queue">' + IC.lens + '<span>BrandLens</span></a>' +
+    '<nav aria-label="Main">' + nav.map(([v, l]) => '<a href="#' + v + '" data-act="nav" data-v="' + v + '"' + (UI.view === v || (v === 'queue' && UI.view === 'review') ? ' aria-current="page"' : '') + '>' + l + '</a>').join('') + '</nav>' +
+    '<div class="roles" role="radiogroup" aria-label="Viewing as">' +
+    Object.entries(ROLES).map(([k, r]) => '<button role="radio" aria-checked="' + (D.role === k) + '" class="role' + (D.role === k ? ' on' : '') + '" data-act="role" data-r="' + k + '"><b>' + r.label + '</b><small>' + r.name + '</small></button>').join('') +
+    '</div></div>';
+}
+
+/* ---------- queue ---------- */
+function waitingFor(s) {
+  if (D.role === 'creator') return s.status === 'draft' || s.status === 'changes_requested';
+  return s.status === 'in_review';
+}
+function tourCard() {
+  if (D.tourHidden) return '';
+  const T = D.tour;
+  const steps = [
+    ['Open the “Back-to-college promo post” and click any underlined text', T.picked, 'open-hero', 'Open the draft'],
+    ['Apply a suggested fix, or dismiss one with a reason', T.applied, null],
+    ['Optional: ask for the AI second opinion', T.ai, null],
+    ['Resolve every high-severity issue, then submit for review', T.submitted, null],
+    ['Switch to Brand Manager (top right) and approve it', T.approved, null],
+  ];
+  const done = steps.filter((s) => s[1]).length;
+  return '<section class="tour card" aria-label="Quick tour"><div class="tour-h"><div><h2>Try the full workflow in about two minutes</h2><p class="muted">Everything below is live. Your changes stay in this browser.</p></div>' +
+    '<button class="btn ghost sm" data-act="tourHide">Hide</button></div>' +
+    '<ol class="steps">' + steps.map((s, i) => '<li class="' + (s[1] ? 'done' : '') + '"><span class="n">' + (s[1] ? IC.check : i + 1) + '</span><span>' + s[0] + '</span>' + (s[2] ? '<button class="btn sm" data-act="' + s[2] + '">' + s[3] + '</button>' : '') + '</li>').join('') + '</ol>' +
+    '<div class="tour-f"><span class="muted">' + done + ' of ' + steps.length + ' done</span><button class="btn ghost sm" data-act="reset">Reset demo data</button></div></section>';
+}
+function newPanel() {
+  if (!UI.newOpen) return '';
+  return '<section class="card newp" aria-label="New review"><h2>New review</h2>' +
+    '<form data-form="newReview" class="form-grid">' +
+    '<label>Title<input id="nr-title" name="title" required placeholder="For example: Diwali offer post"></label>' +
+    '<label>Channel<select id="nr-channel" name="channel">' + K.CHANNELS.map((c) => '<option>' + c + '</option>').join('') + '</select></label>' +
+    '<label>Team<select id="nr-team" name="team"><option>Campus</option><option>Marketing</option><option>Support</option></select></label>' +
+    '<label class="wide">What should this content achieve?<input id="nr-goal" name="goal" placeholder="One sentence. Suggestions will keep this goal."></label>' +
+    '<label class="wide">Content<textarea id="nr-text" name="text" rows="7" required placeholder="Paste your draft here, or upload a file below">' + esc(UI.newText) + '</textarea></label>' +
+    '<div class="wide row-gap"><label class="btn sm file">Upload .txt .md .html .docx<input id="nr-file" type="file" accept=".txt,.md,.html,.htm,.docx" data-file="text"></label>' +
+    '<label class="chk"><input type="checkbox" id="nr-conf" name="confidential"> Confidential: never send this to the AI</label></div>' +
+    '<div class="wide row-gap"><button class="btn primary" type="submit">Create and check</button><button class="btn ghost" type="button" data-act="newToggle">Cancel</button></div>' +
+    '</form></section>';
+}
+function viewQueue() {
+  const subs = D.subs.slice().sort((a, b) => b.updatedAt - a.updatedAt);
+  const f = UI.filter;
+  const shown = subs.filter((s) => f === 'all' || (f === 'waiting' ? waitingFor(s) : s.status === f));
+  const waiting = subs.filter(waitingFor).length;
+  const cnt = (k) => subs.filter((s) => s.status === k).length;
+  const chips = [['all', 'All', subs.length], ['waiting', 'Waiting for you', waiting], ['draft', 'Draft', cnt('draft')], ['in_review', 'In review', cnt('in_review')], ['changes_requested', 'Changes requested', cnt('changes_requested')], ['approved', 'Approved', cnt('approved')]];
+  const note = { creator: 'You write and fix. Drafts and requested changes are waiting for you.', manager: 'You give final approval. Reviews in “In review” are waiting for you.', reviewer: 'You sign off claims and facts. Reviews in “In review” are waiting for you.' }[D.role];
+  return '<div class="wrap">' + tourCard() +
+    '<div class="page-h"><div><h1>Reviews</h1><p class="muted">' + note + '</p></div>' +
+    (D.role === 'creator' ? '<button class="btn primary" data-act="newToggle">New review</button>' : '<span class="muted small">Switch to Creator to start a review</span>') + '</div>' +
+    newPanel() +
+    '<div class="chips" role="tablist" aria-label="Filter reviews">' + chips.map(([k, l, n]) => '<button class="fchip' + (f === k ? ' on' : '') + '" data-act="filter" data-k="' + k + '">' + l + ' <b>' + n + '</b></button>').join('') + '</div>' +
+    '<div class="list">' + (shown.length ? shown.map((s) => {
+      const A = analysis(s);
+      const c = A.count;
+      return '<button class="rowc" data-act="open" data-id="' + s.id + '"><span class="r-main"><b>' + esc(s.title) + '</b><small>' + esc(s.channel) + ' · ' + esc(s.team) + ' · ' + esc(s.author.name) + '</small></span>' +
+        '<span class="r-sev" aria-label="Open issues">' + (c.high + c.medium + c.low === 0 ? '<span class="clean">' + IC.check + ' Clean</span>' : ['high', 'medium', 'low'].map((k) => c[k] ? '<span class="dotc ' + k + '"><i></i>' + c[k] + '</span>' : '').join('')) + '</span>' +
+        '<span class="r-st">' + statusPill(s.status) + (waitingFor(s) ? '<em class="wf">Waiting for you</em>' : '') + '</span><span class="r-t muted">' + rel(s.updatedAt) + '</span></button>';
+    }).join('') : '<p class="empty">Nothing here. Try another filter.</p>') + '</div></div>';
+}
+
+/* ---------- review ---------- */
+function annotated(sub, A) {
+  const text = sub.draft;
+  const ranged = A.findings.filter((f) => f.start >= 0);
+  const b = new Set([0, text.length]);
+  ranged.forEach((f) => { b.add(f.start); b.add(f.end); });
+  const pts = [...b].sort((x, y) => x - y);
+  let html = '';
+  for (let i = 0; i < pts.length - 1; i++) {
+    const s = pts[i], e = pts[i + 1], seg = text.slice(s, e);
+    const cov = ranged.filter((f) => f.start <= s && f.end >= e);
+    if (!cov.length) { html += esc(seg); continue; }
+    const top = cov.slice().sort((x, y) => E.SEV[y.severity] - E.SEV[x.severity])[0];
+    const open = cov.filter((f) => !f.decision);
+    html += '<mark class="mk ' + top.severity + (open.length ? '' : ' done') + (cov.some((f) => f.id === UI.active) ? ' on' : '') + '" data-act="pick" data-fid="' + esc(top.id) + '" tabindex="0" role="button" aria-label="' + esc(top.title) + '">' + esc(seg) + '</mark>';
+  }
+  return html;
+}
+function visualCard(sub, A) {
+  const v = sub.visual, ed = editable(sub), dis = ed ? '' : ' disabled';
+  const ratio = v.fg && v.bg ? E.contrast(v.fg, v.bg) : null;
+  const need = v.large ? 3 : 4.5;
+  const pal = v.palette && v.palette.colors ? v.palette.colors : [];
+  return '<section class="card" id="visualCard"><div class="card-h"><h3>Visual details</h3><span class="muted small">Colours, logo and alt text are checked against the brand kit</span></div>' +
+    '<label class="chk"><input type="checkbox" data-vis="hasImage" id="v-has"' + (v.hasImage ? ' checked' : '') + dis + '> This content includes an image or graphic</label>' +
+    '<div class="vgrid"><div class="vcol">' +
+    (v.hasImage ? '<div class="thumb">' + (v.thumb ? '<img src="' + v.thumb + '" alt="Preview of the uploaded image">' : '<div class="thumb-empty">No image uploaded yet</div>') + '</div>' +
+      (ed ? '<div class="row-gap"><label class="btn sm file">Upload image<input type="file" id="v-file" accept="image/*" data-file="image"></label><button class="btn sm ghost" data-act="samplePoster">Use a sample poster</button></div>' : '') +
+      (pal.length ? '<div class="pal" aria-label="Dominant colours">' + pal.slice(0, 5).map((c) => { const nb = E.nearestBrand(c.hex, D.kit); const off = nb.d > 18; return '<div class="sw"><i style="background:' + c.hex + '"></i><span>' + Math.round(c.share * 100) + '%</span><small class="' + (off && !v.palette.photographic ? 'bad' : 'good') + '">' + (off ? 'off-brand' : nb.name) + '</small></div>'; }).join('') + '</div>' +
+        (v.palette.photographic ? '<p class="muted small">Photograph detected: the palette check is skipped for photos.</p>' : '') : '') : '<p class="muted small">Tick the box if a poster, banner or photo goes out with this text.</p>') +
+    '</div><div class="vcol">' +
+    (v.hasImage ? '<label>Alt text<input id="v-alt" data-vis="alt" value="' + esc(v.alt) + '" placeholder="Describe what the image shows"' + dis + '></label>' : '') +
+    '<div class="cols2"><label>Text colour<span class="colorin"><input type="color" id="v-fgc" data-vis="fg" value="' + esc(v.fg) + '"' + dis + '><input class="hex" id="v-fg" data-vis="fg" value="' + esc(v.fg) + '"' + dis + ' aria-label="Text colour hex"></span></label>' +
+    '<label>Background<span class="colorin"><input type="color" id="v-bgc" data-vis="bg" value="' + esc(v.bg) + '"' + dis + '><input class="hex" id="v-bg" data-vis="bg" value="' + esc(v.bg) + '"' + dis + ' aria-label="Background colour hex"></span></label></div>' +
+    '<label class="chk"><input type="checkbox" data-vis="large" id="v-large"' + (v.large ? ' checked' : '') + dis + '> Large text (24 px or bold 19 px and up)</label>' +
+    '<div class="contrast" id="ratioOut" style="--fg:' + esc(v.fg) + ';--bgc:' + esc(v.bg) + '"><span class="sample">Aa</span><span>' + (ratio ? '<b>' + ratio.toFixed(2) + ':1</b> ' + (ratio >= need ? '<em class="good">Passes AA</em>' : '<em class="bad">Fails AA (needs ' + need + ':1)</em>') : 'Enter two valid hex colours') + '</span></div>' +
+    '<label>Logo shown<select id="v-logo" data-vis="logo"' + dis + '>' + [['none', 'No logo'], ['full', 'Full-colour logo'], ['mono', 'White logo'], ['old', '2022 logo (retired)'], ['altered', 'Stretched or recoloured logo']].map(([k, l]) => '<option value="' + k + '"' + (v.logo === k ? ' selected' : '') + '>' + l + '</option>').join('') + '</select></label>' +
+    '</div></div></section>';
+}
+function metersHtml(A) {
+  const s = A.stats, r = s.reading;
+  return '<div class="meters">' +
+    '<div class="meter"><span class="k">Reading ease</span><b class="' + (r >= 60 ? 'good' : r >= 50 ? '' : 'bad') + '">' + r + '</b><small>target 60+</small></div>' +
+    '<div class="meter"><span class="k">Facts verified</span><b>' + s.factsOk + '<span class="of"> / ' + s.factsChecked + '</span></b><small>prices, counts, dates</small></div>' +
+    '<div class="meter"><span class="k">Claims on the approved list</span><b>' + s.claimsApproved + '</b><small>' + s.claimsFlagged + ' need attention</small></div>' +
+    '<div class="meter"><span class="k">Open issues</span><b class="' + (A.openHigh.length ? 'bad' : 'good') + '">' + A.open.length + '</b><small>' + A.openHigh.length + ' high</small></div></div>';
+}
+function discussion(sub) {
+  const tabs = [['comments', 'Comments (' + sub.comments.length + ')'], ['versions', 'Versions (' + sub.versions.length + ')'], ['audit', 'Audit trail (' + sub.audit.length + ')']];
+  let body = '';
+  if (UI.tab === 'comments') {
+    body = (sub.comments.length ? sub.comments.map((c) => '<div class="cm"><div class="cm-h"><b>' + esc(c.by) + '</b><span class="rchip r-' + c.role + '">' + ROLES[c.role].label + '</span><span class="muted small">' + stamp(c.at) + '</span></div>' + (c.ref ? '<p class="muted small">Re: ' + esc(c.ref) + '</p>' : '') + '<p>' + esc(c.text) + '</p></div>').join('') : '<p class="empty">No comments yet.</p>') +
+      '<div class="composer">' + (UI.cref ? '<p class="muted small">Commenting on: ' + esc(UI.cref) + ' <button class="lnk" data-act="clearRef">clear</button></p>' : '') +
+      '<textarea id="cdraft" rows="2" placeholder="Write a comment as ' + esc(me().name) + '">' + esc(UI.cdraft) + '</textarea><button class="btn sm" data-act="postComment">Post comment</button></div>';
+  } else if (UI.tab === 'versions') {
+    body = '<ul class="vers">' + sub.versions.slice().reverse().map((v) => '<li><div><b>Version ' + v.v + '</b> <span class="muted small">' + esc(v.by) + ' · ' + stamp(v.at) + ' · ' + esc(v.note) + '</span></div><button class="btn sm ghost" data-act="diff" data-v="' + v.v + '">' + (UI.diffV === v.v ? 'Hide changes' : 'Compare with current') + '</button></li>').join('') + '</ul>';
+    if (UI.diffV) {
+      const v = sub.versions.find((x) => x.v === UI.diffV);
+      if (v) {
+        const ops = E.diffWords(v.text, sub.draft);
+        body += '<div class="diff" aria-label="Changes since version ' + v.v + '"><p class="muted small">Red is removed since version ' + v.v + ', green is added.</p><div class="difft">' + ops.map((o) => o.t === 'eq' ? esc(o.v) : '<' + (o.t === 'del' ? 'del' : 'ins') + '>' + esc(o.v) + '</' + (o.t === 'del' ? 'del' : 'ins') + '>').join('') + '</div></div>';
+      }
+    }
+  } else {
+    body = '<ol class="audit">' + sub.audit.slice().reverse().map((a) => '<li><span class="rchip r-' + a.role + '">' + ROLES[a.role].label + '</span><span><b>' + esc(a.by) + '</b> ' + esc(a.text) + '<br><small class="muted">' + stamp(a.at) + '</small></span></li>').join('') + '</ol>';
+  }
+  return '<section class="card"><div class="tabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" aria-selected="' + (UI.tab === k) + '" class="tab' + (UI.tab === k ? ' on' : '') + '" data-act="tab" data-k="' + k + '">' + l + '</button>').join('') + '</div>' + body + '</section>';
+}
+function actionBar(sub, A) {
+  const st = sub.status, bl = approvalBlockers(sub);
+  const note = '<textarea id="note" rows="1" placeholder="Decision note (required to request changes or reject)">' + esc(UI.note) + '</textarea>';
+  let inner = '';
+  if (st === 'approved') {
+    inner = '<div class="ab-msg ok">' + IC.check + ' Approved by ' + esc(sub.approvedBy || 'Brand Manager') + '. This version is locked.</div>' + (isManager() ? '<button class="btn sm" data-act="reopen">Reopen</button>' : '');
+  } else if (st === 'rejected') {
+    inner = '<div class="ab-msg bad">Rejected. Create a new review to try again.</div>';
+  } else if (D.role === 'creator') {
+    if (st === 'in_review') inner = '<div class="ab-msg">Waiting for the Brand Manager and Reviewer.</div><button class="btn sm" data-act="withdraw">Withdraw to edit</button>';
+    else inner = '<div class="ab-msg' + (A.openHigh.length ? ' warn' : '') + '">' + (A.openHigh.length ? A.openHigh.length + ' high-severity issue' + (A.openHigh.length > 1 ? 's' : '') + ' to resolve before you can submit' : 'Ready to submit. Medium and low issues can go through.') + '</div><button class="btn" data-act="saveVersion">Save version</button><button class="btn primary" data-act="submit"' + (A.openHigh.length ? ' aria-disabled="true"' : '') + '>Submit for review</button>';
+  } else if (D.role === 'manager') {
+    if (st === 'in_review') inner = '<div class="ab-note">' + note + '</div><div class="ab-msg' + (bl.length ? ' warn' : '') + '">' + (bl.length ? 'Can’t approve yet: ' + bl.join('; ') : 'No blockers. You can approve.') + '</div><button class="btn" data-act="requestChanges">Request changes</button><button class="btn danger" data-act="reject">Reject</button><button class="btn primary" data-act="approve"' + (bl.length ? ' aria-disabled="true"' : '') + '>Approve</button>';
+    else inner = '<div class="ab-msg">Nothing to decide yet. This review is ' + STATUS[st].label.toLowerCase() + '.</div>';
+  } else {
+    if (st === 'in_review') inner = '<div class="ab-note">' + note + '</div><div class="ab-msg">' + (A.needsAck.length ? A.needsAck.length + ' dismissed high-severity finding' + (A.needsAck.length > 1 ? 's' : '') + ' need your sign-off.' : 'Nothing waiting for sign-off.') + '</div>' + (A.needsAck.length ? '<button class="btn primary" data-act="signoffAll">Sign off all</button>' : '') + '<button class="btn" data-act="requestChanges">Request changes</button>';
+    else inner = '<div class="ab-msg">Nothing to review yet. This review is ' + STATUS[st].label.toLowerCase() + '.</div>';
+  }
+  return '<div class="abar" role="region" aria-label="Actions">' + inner + '</div>';
+}
+
+function fixPreview(f) {
+  const fx = f.fix;
+  if (!fx) return '';
+  const b = f.text ? '<del>' + esc(trunc(f.text, 70)) + '</del>' : '';
+  if (fx.kind === 'replace') return '<div class="ba">' + b + '<span class="arr">→</span><ins>' + esc(trunc(fx.text, 80)) + '</ins></div>';
+  if (fx.kind === 'delete') return '<div class="ba">' + b + '<span class="arr">→</span><ins class="gone">remove</ins></div>';
+  if (fx.kind === 'append') return '<div class="ba"><span class="muted small">Add at the end</span><span class="arr">→</span><ins>' + esc(fx.text) + '</ins></div>';
+  if (fx.kind === 'visual') return '<div class="ba"><span class="muted small">Change to</span><span class="arr">→</span><ins>' + esc(fx.text) + '</ins></div>';
+  return '';
+}
+const SUBLBL = { contradicts: 'Contradicts an approved fact', unverified: 'No approved source', outdated: 'Out of date' };
+function card(sub, f, canAct) {
+  const cl = clauseOf(f.clause), d = f.decision;
+  const head = '<div class="fc-h"><span class="sev ' + f.severity + '">' + SEV_LABEL[f.severity] + '</span><span class="chip">' + CAT_LABEL[f.category] + '</span><span class="rid">' + (f.source === 'ai' ? 'AI' : f.rule) + '</span>' +
+    (f.source === 'ai' ? '<span class="chip ai">' + IC.spark + ' ' + Math.round(f.conf * 100) + '%' + (f.lowConf ? ' · needs human check' : '') + '</span>' : '') +
+    (f.sub ? '<span class="chip sub-' + f.sub + '">' + (f.rule === 'CLM-PRO' ? 'On the prohibited list' : SUBLBL[f.sub]) + '</span>' : '') + '</div>';
+  const on = UI.active === f.id ? ' on' : '';
+  if (d) {
+    const acked = f.severity !== 'high' || d.ack;
+    return '<article class="fc ' + f.severity + ' resolved' + on + '" id="fc-' + esc(f.id) + '" data-fid="' + esc(f.id) + '">' + head + '<h4>' + esc(f.title) + '</h4>' +
+      '<p class="why"><b>Dismissed</b> by ' + esc(d.by) + ': ' + esc(d.reason) + '</p>' +
+      (f.severity === 'high' ? '<p class="so ' + (acked ? 'ok' : 'wait') + '">' + (acked ? IC.check + ' Signed off by ' + esc(d.ackBy || 'Reviewer') : 'Waiting for Reviewer sign-off') + '</p>' : '') +
+      '<div class="fc-a">' + (D.role === 'reviewer' && !acked && sub.status === 'in_review' ? '<button class="btn sm primary" data-act="signoff" data-key="' + esc(f.key) + '">Sign off</button>' : '') +
+      (editable(sub) ? '<button class="btn sm ghost" data-act="undo" data-key="' + esc(f.key) + '">Undo</button>' : '') + '</div></article>';
+  }
+  let acts = '';
+  if (canAct) {
+    acts += (f.fix ? '<button class="btn sm primary" data-act="applyFix" data-fid="' + esc(f.id) + '">Apply fix</button>' : '') +
+      (f.start >= 0 ? '<button class="btn sm" data-act="editAt" data-fid="' + esc(f.id) + '">Edit text</button>' : f.field === 'alt' ? '<button class="btn sm" data-act="gotoVisual">Go to alt text</button>' : '') +
+      (f.noDismiss ? '<span class="muted small">Can’t be dismissed</span>' : '<button class="btn sm ghost" data-act="dismissStart" data-key="' + esc(f.key) + '">Dismiss…</button>');
+  }
+  acts += '<button class="btn sm ghost" data-act="commentOn" data-fid="' + esc(f.id) + '">Comment</button>';
+  const dis = UI.dismissing === f.key ? '<div class="dis"><label>Why is this fine to publish?<input id="dis-reason" placeholder="Short reason. It goes in the audit trail."></label><div class="row-gap"><button class="btn sm primary" data-act="dismissConfirm" data-key="' + esc(f.key) + '">Dismiss</button><button class="btn sm ghost" data-act="dismissCancel">Cancel</button></div>' + (f.severity === 'high' ? '<p class="muted small">High-severity dismissals need Reviewer sign-off before approval.</p>' : '') + '</div>' : '';
+  return '<article class="fc ' + f.severity + on + '" id="fc-' + esc(f.id) + '" data-fid="' + esc(f.id) + '">' + head + '<h4>' + esc(f.title) + '</h4>' +
+    (f.start >= 0 && f.text ? '<p class="quote">“' + esc(trunc(f.text, 120)) + '”</p>' : '') +
+    '<p class="why">' + esc(f.why) + '</p>' +
+    (cl ? '<div class="src"><span class="cid">' + esc(cl.id) + '</span><span><b>' + esc(cl.title) + '.</b> ' + esc(cl.text) + '</span></div>' : '') +
+    (f.fix ? '<div class="fix">' + fixPreview(f) + (f.keep ? '<p class="keep">' + esc(f.keep) + '</p>' : '') + '</div>' : f.keep ? '<p class="keep">' + esc(f.keep) + '</p>' : '') +
+    dis + '<div class="fc-a">' + acts + '</div></article>';
+}
+
+function aiPanel(sub) {
+  const a = UI.ai && UI.ai.id === sub.id ? UI.ai : null;
+  const hasAI = sub.ai && sub.ai.items;
+  if (!editable(sub) && !hasAI) return '';
+  const masked = E.maskPII(sub.draft);
+  let body = '';
+  if (a && a.status === 'confirm') {
+    body = '<p><b>What will be sent:</b> the draft below (personal data masked), your goal, the guideline clauses and the approved facts. Nothing else.</p><pre class="sent">' + esc(trunc(masked, 700)) + '</pre>' +
+      '<div class="row-gap"><button class="btn primary sm" data-act="aiSend">Send to AI</button><button class="btn ghost sm" data-act="aiClose">Cancel</button></div>';
+  } else if (a && a.status === 'running') {
+    body = '<p class="muted">Asking the AI for a second opinion…</p>';
+  } else if (a && a.status === 'unavailable') {
+    body = '<p class="muted">The AI second opinion needs the Claude app around this page. Everything else works without it.</p><button class="btn ghost sm" data-act="aiClose">Close</button>';
+  } else if (a && a.status === 'error') {
+    body = '<p class="bad">' + esc(a.msg) + '</p><button class="btn ghost sm" data-act="aiClose">Close</button>';
+  } else if (a && a.status === 'done') {
+    body = '<p><b>' + a.kept + ' AI finding' + (a.kept === 1 ? '' : 's') + ' added.</b> ' + (a.dropped.length ? a.dropped.length + ' discarded because they had no valid source in the brand kit: ' + a.dropped.map((x) => esc(x.why.toLowerCase())).join(', ') + '.' : 'All were backed by a clause.') + '</p><button class="btn ghost sm" data-act="aiClose">Close</button>';
+  }
+  const btn = editable(sub) ? (sub.confidential ? '<span class="muted small">' + IC.lock + ' Confidential: AI is off for this review</span>' : '<button class="btn sm" data-act="aiOpen">' + IC.spark + ' AI second opinion</button>') : '';
+  return '<div class="aip"><div class="aip-h">' + btn + (hasAI ? '<span class="muted small">Last AI check: ' + sub.ai.items.length + ' kept, ' + sub.ai.dropped + ' discarded</span>' : '') + '</div>' + (body ? '<div class="aip-b">' + body + '</div>' : '') +
+    '<p class="muted small">AI use is disclosed on every review. Rules always run first, and the AI can only cite clauses that exist.</p></div>';
+}
+function findingsPane(sub, A) {
+  const ed = editable(sub);
+  let list = A.findings.filter((f) => UI.sev === 'all' || f.severity === UI.sev);
+  if (UI.openOnly) list = list.filter((f) => !f.decision);
+  list.sort((a, b) => E.SEV[b.severity] - E.SEV[a.severity] || ((a.start < 0) - (b.start < 0)) || a.start - b.start);
+  const safeN = A.open.filter((f) => f.safe && f.fix && f.start >= 0).length;
+  const total = A.findings.length;
+  const chips = [['all', 'All', total], ['high', 'High', A.findings.filter((f) => f.severity === 'high').length], ['medium', 'Medium', A.findings.filter((f) => f.severity === 'medium').length], ['low', 'Low', A.findings.filter((f) => f.severity === 'low').length]];
+  return '<div class="fp-h"><h2>Findings</h2><span class="muted small">' + A.open.length + ' open · ' + (total - A.open.length) + ' resolved</span></div>' +
+    '<div class="chips sm">' + chips.map(([k, l, n]) => '<button class="fchip' + (UI.sev === k ? ' on' : '') + '" data-act="sev" data-k="' + k + '">' + l + ' <b>' + n + '</b></button>').join('') +
+    '<label class="chk tiny"><input type="checkbox" id="openOnly" ' + (UI.openOnly ? 'checked' : '') + '> Hide resolved</label></div>' +
+    (ed && safeN ? '<div class="safe"><span><b>' + safeN + ' mechanical fix' + (safeN > 1 ? 'es' : '') + '</b> (spelling of terms, capitals, hashtags). Claims and facts are never applied for you.</span><button class="btn sm" data-act="applySafe">Apply ' + safeN + '</button></div>' : '') +
+    aiPanel(sub) +
+    (list.length ? list.map((f) => card(sub, f, ed)).join('') : '<div class="allclear"><div class="big">' + IC.check + '</div><b>' + (total ? 'Nothing matches this filter' : 'No issues found') + '</b><p class="muted">' + (total ? 'Change the filter above.' : 'This content matches the brand kit. A person still decides whether it goes out.') + '</p></div>');
+}
+
+function viewReview() {
+  const sub = getSub(UI.sel);
+  if (!sub) { UI.view = 'queue'; return viewQueue(); }
+  const A = analysis(sub), ed = editable(sub);
+  const body = UI.editing && ed
+    ? '<textarea id="draft" class="draft-ta" rows="14" spellcheck="true" aria-label="Content">' + esc(sub.draft) + '</textarea><div class="row-gap"><button class="btn primary sm" data-act="doneEdit">Done editing</button><span class="muted small" id="liveCount">' + A.open.length + ' open issues</span></div>'
+    : '<div class="draft" id="draftView">' + annotated(sub, A) + '</div>' + (ed ? '<div class="row-gap"><button class="btn sm" data-act="startEdit">Edit text</button><span class="muted small">Underlines show findings. Click one to see why.</span></div>' : '<p class="muted small">Underlines show findings. Click one to see why.</p>');
+  return '<div class="wrap review"><div class="r-top"><button class="btn ghost sm" data-act="nav" data-v="queue">' + IC.back + ' All reviews</button></div>' +
+    '<div class="r-grid"><div class="r-left">' +
+    '<div class="page-h tight"><div><h1>' + esc(sub.title) + '</h1><p class="muted">' + esc(sub.channel) + ' · ' + esc(sub.team) + ' · by ' + esc(sub.author.name) + ' · version ' + sub.versions.length + '</p></div>' + statusPill(sub.status) + '</div>' +
+    '<section class="card"><div class="card-h"><h3>Content</h3>' + (sub.confidential ? '<span class="chip conf">' + IC.lock + ' Confidential</span>' : '') + '</div>' +
+    '<p class="goal"><span class="k">Goal</span> ' + (ed ? '<input id="goal" class="goal-in" value="' + esc(sub.goal) + '" placeholder="What should this achieve?">' : esc(sub.goal || 'Not stated')) + '</p>' + body + '</section>' +
+    metersHtml(A) + visualCard(sub, A) + discussion(sub) + actionBar(sub, A) +
+    '</div><aside class="r-right" aria-label="Findings">' + findingsPane(sub, A) + '</aside></div></div>';
+}
+
+/* ---------- brand kit ---------- */
+function viewKit() {
+  const kit = D.kit, mgr = isManager();
+  const tabs = [['guidelines', 'Guidelines'], ['glossary', 'Glossary'], ['banned', 'Banned phrases'], ['facts', 'Approved facts'], ['claims', 'Claims register'], ['palette', 'Palette and logo'], ['share', 'Import and export']];
+  let b = '';
+  const ro = mgr ? '' : '<p class="note">Read only. Switch to <b>Brand Manager</b> (top right) to edit the kit.</p>';
+  if (UI.kitTab === 'guidelines') {
+    const groups = [...new Set(kit.clauses.map((c) => c.group))];
+    b = groups.map((g) => '<h3 class="grp">' + g + '</h3><div class="clauses">' + kit.clauses.filter((c) => c.group === g).map((c) => {
+      const rules = Object.entries(E.RULES).filter(([, r]) => r.clause === c.id).map(([k, r]) => '<span class="chip">' + k + '</span>');
+      return '<div class="clause' + (UI.kitFocus === c.id ? ' flash' : '') + '" id="cl-' + c.id + '"><span class="cid">' + c.id + '</span><div><b>' + esc(c.title) + '</b><p>' + esc(c.text) + '</p>' + (rules.length ? '<div class="rules">Checked by ' + rules.join('') + '</div>' : '') + '</div></div>';
+    }).join('') + '</div>').join('');
+  } else if (UI.kitTab === 'glossary') {
+    b = ro + '<div class="tw"><table><thead><tr><th>Avoid</th><th>Use</th><th>Why</th></tr></thead><tbody>' + kit.glossary.map((g) => '<tr><td>' + g.wrong.map((w) => '<span class="chip">' + esc(w) + '</span>').join(' ') + '</td><td><b>' + esc(g.right) + '</b></td><td class="muted">' + esc(g.note || '') + '</td></tr>').join('') + '</tbody></table></div>' +
+      (mgr ? '<form data-form="addGlossary" class="form-grid inline"><label>Avoid (comma separated)<input id="g-wrong" name="wrong" required placeholder="cheap, bargain"></label><label>Use instead<input id="g-right" name="right" required placeholder="affordable"></label><label class="wide">Why<input id="g-note" name="note" placeholder="Optional"></label><div class="wide"><button class="btn primary sm" type="submit">Add term</button></div></form>' : '');
+  } else if (UI.kitTab === 'banned') {
+    b = ro + '<div class="tw"><table><thead><tr><th>Phrase</th><th>Type</th><th>Suggestion</th><th>Only in</th></tr></thead><tbody>' + kit.banned.map((p) => '<tr><td><b>' + esc(p.phrase) + '</b></td><td>' + p.kind + '</td><td>' + (p.suggest ? esc(p.suggest) : '<span class="muted">none</span>') + '</td><td class="muted">' + (p.channels && p.channels.length ? p.channels.join(', ') : 'all channels') + '</td></tr>').join('') + '</tbody></table></div>' +
+      (mgr ? '<form data-form="addBanned" class="form-grid inline"><label>Phrase<input id="b-phrase" name="phrase" required></label><label>Type<select id="b-kind" name="kind"><option value="hype">Hype</option><option value="jargon">Jargon</option><option value="slang">Slang (email and press only)</option></select></label><label class="wide">Suggested replacement<input id="b-suggest" name="suggest" placeholder="Optional"></label><div class="wide"><button class="btn primary sm" type="submit">Add phrase</button></div></form>' : '');
+  } else if (UI.kitTab === 'facts') {
+    b = ro + '<p class="muted">Content is checked against these values. Change one and every open review is re-checked.</p><div class="facts">' + kit.facts.map((f) => '<form class="fact" data-form="setFact" data-key="' + f.key + '"><div><b>' + esc(f.label) + '</b><small class="muted">' + esc(f.source) + '</small></div><input type="number" id="f-' + f.key + '" name="value" value="' + f.value + '" ' + (mgr ? '' : 'disabled') + ' aria-label="' + esc(f.label) + '">' + (mgr ? '<button class="btn sm" type="submit">Update</button>' : '') + '</form>').join('') + '</div>';
+  } else if (UI.kitTab === 'claims') {
+    const row = (c) => '<tr><td><b>' + esc(c.text) + '</b></td><td class="muted">' + (c.status === 'approved' ? 'Source: ' + esc(c.source || '') : c.suggest ? 'Suggest: ' + esc(c.suggest) : c.suggest === '' ? 'Remove the phrase' : 'No automatic fix') + '</td></tr>';
+    b = ro + '<h3 class="grp">Approved claims</h3><div class="tw"><table><tbody>' + kit.claims.filter((c) => c.status === 'approved').map(row).join('') + '</tbody></table></div><h3 class="grp">Prohibited claims</h3><div class="tw"><table><tbody>' + kit.claims.filter((c) => c.status === 'prohibited').map(row).join('') + '</tbody></table></div>' +
+      (mgr ? '<form data-form="addClaim" class="form-grid inline"><label>Status<select id="c-status" name="status"><option value="approved">Approved</option><option value="prohibited">Prohibited</option></select></label><label>Phrase<input id="c-text" name="text" required placeholder="For example: free for students"></label><label>Source or replacement<input id="c-extra" name="extra" placeholder="Source (approved) or replacement (prohibited)"></label><div class="wide"><button class="btn primary sm" type="submit">Add claim</button></div></form>' : '');
+  } else if (UI.kitTab === 'palette') {
+    b = '<div class="palette">' + kit.palette.map((p) => '<div class="pc"><i style="background:' + p.hex + '"></i><b>' + p.name + '</b><span class="mono">' + p.hex + '</span><small class="muted">' + p.use + '</small></div>').join('') + '</div>' +
+      '<p class="muted">Contrast rule: text needs 4.5:1 (3:1 for large text). Logo: full-colour on light, white on dark, never stretched. The 2022 logo is retired.</p>';
+  } else {
+    const exp = JSON.stringify({ glossary: kit.glossary.map(({ wrong, right, note }) => ({ wrong, right, note })), banned: kit.banned, facts: kit.facts.map(({ key, value }) => ({ key, value })), claims: kit.claims.map(({ status, text, pattern, suggest, source }) => ({ status, text, pattern, suggest, source })) }, null, 2);
+    b = ro + '<div class="two"><div><h3 class="grp">Export</h3><textarea id="exp" rows="10" readonly>' + esc(exp) + '</textarea><button class="btn sm" data-act="copyKit">Copy JSON</button></div>' +
+      '<div><h3 class="grp">Import</h3><textarea id="imp" rows="10" placeholder="Paste kit JSON here. New glossary terms, phrases and claims are added; facts are updated by key."' + (mgr ? '' : ' disabled') + '></textarea>' + (mgr ? '<button class="btn primary sm" data-act="importKit">Import</button>' : '') + '</div></div>' +
+      '<h3 class="grp">Version history</h3><ol class="audit">' + kit.changelog.map((c) => '<li><span class="rchip r-manager">Manager</span><span><b>' + esc(c.by) + '</b> ' + esc(c.text) + '<br><small class="muted">' + stamp(c.at) + '</small></span></li>').join('') + '</ol>';
+  }
+  return '<div class="wrap"><div class="page-h"><div><h1>Brand Kit</h1><p class="muted">The approved source material for every check. Version ' + kit.version + ' · ' + kit.name + ' (demo brand)</p></div></div>' +
+    '<div class="tabs scroll" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" aria-selected="' + (UI.kitTab === k) + '" class="tab' + (UI.kitTab === k ? ' on' : '') + '" data-act="kitTab" data-k="' + k + '">' + l + '</button>').join('') + '</div><div class="card kitb">' + b + '</div></div>';
+}
+
+/* ---------- insights ---------- */
+function barChart(data) {
+  const rows = Object.entries(data).sort((a, b) => b[1] - a[1]);
+  const max = Math.max.apply(null, rows.map((r) => r[1]).concat(1));
+  const H = rows.length * 30 + 6;
+  return '<svg viewBox="0 0 560 ' + H + '" class="chart" role="img" aria-label="Issues caught by category">' + rows.map(([k, v], i) => {
+    const y = i * 30 + 4, w = Math.max(3, (v / max) * 360);
+    return '<text x="0" y="' + (y + 16) + '" class="ct">' + CAT_LABEL[k] + '</text><rect x="120" y="' + y + '" width="' + w + '" height="20" rx="3" class="bar"/><text x="' + (128 + w) + '" y="' + (y + 15) + '" class="cv">' + v + '</text>';
+  }).join('') + '</svg>';
+}
+function trendChart(weeks) {
+  const W = 560, Ht = 190, l = 30, r = 16, t = 20, bt = 28;
+  const max = Math.ceil(Math.max.apply(null, weeks.concat(1)) / 10) * 10;
+  const x = (i) => l + (i * (W - l - r)) / (weeks.length - 1), y = (v) => t + (1 - v / max) * (Ht - t - bt);
+  const pts = weeks.map((v, i) => x(i) + ',' + y(v)).join(' ');
+  const area = l + ',' + y(0) + ' ' + pts + ' ' + x(weeks.length - 1) + ',' + y(0);
+  const labels = ['6 wks ago', '5 wks', '4 wks', '3 wks', '2 wks', 'Now'];
+  return '<svg viewBox="0 0 ' + W + ' ' + Ht + '" class="chart" role="img" aria-label="Issues caught per week: ' + weeks.join(', ') + '">' +
+    [0, max / 2, max].map((v) => '<line x1="' + l + '" x2="' + (W - r) + '" y1="' + y(v) + '" y2="' + y(v) + '" class="grid"/><text x="0" y="' + (y(v) + 4) + '" class="ct s">' + v + '</text>').join('') +
+    '<polygon points="' + area + '" class="area"/><polyline points="' + pts + '" class="line" fill="none"/>' +
+    weeks.map((v, i) => '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="' + (i === weeks.length - 1 ? 5 : 3) + '" class="dot' + (i === weeks.length - 1 ? ' last' : '') + '"/><text x="' + x(i) + '" y="' + (y(v) - 9) + '" text-anchor="middle" class="cv s">' + v + '</text><text x="' + x(i) + '" y="' + (Ht - 8) + '" text-anchor="middle" class="ct s">' + labels[i] + '</text>').join('') + '</svg>';
+}
+function viewInsights() {
+  const I = insights();
+  const approved = D.subs.filter((s) => s.status === 'approved').length;
+  const rules = I.rules.slice();
+  const repeat = rules.slice().sort((a, b) => b.n - a.n).slice(0, 8);
+  const unclear = rules.filter((r) => r.n >= 5 && r.rate >= 0.5).sort((a, b) => b.rate - a.rate);
+  const reviewsTot = K.SEED_REVIEWS_PER_WEEK.reduce((a, b) => a + b, 0) + D.subs.length;
+  return '<div class="wrap"><div class="page-h"><div><h1>Governance insights</h1><p class="muted">What goes wrong most often, and which guidelines people keep overriding. Includes six weeks of sample history from the demo workspace, plus everything you do here.</p></div></div>' +
+    '<div class="kpis"><div><b>' + I.total + '</b><span>issues caught before publishing</span></div><div><b>' + Math.round((I.fixed / I.total) * 100) + '%</b><span>fixed rather than dismissed</span></div><div><b>' + Math.round(K.SEED_CLEAN_RATE[5] * 100) + '%</b><span>of reviews clean on first check (was ' + Math.round(K.SEED_CLEAN_RATE[0] * 100) + '% six weeks ago)</span></div><div><b>' + reviewsTot + '</b><span>reviews checked · ' + approved + ' approved in this demo</span></div></div>' +
+    '<div class="two-c"><section class="card"><h3>Issues caught by category</h3>' + barChart(I.byCat) + '</section><section class="card"><h3>Issues caught per week</h3>' + trendChart(I.weeks) + '</section></div>' +
+    '<section class="card"><div class="card-h"><h3>Guidelines that may be unclear</h3><span class="muted small">Rules dismissed at least half the time, with 5 or more hits</span></div>' +
+    (unclear.length ? '<div class="tw"><table><thead><tr><th>Rule</th><th>Clause</th><th>Dismissed</th><th>What to do</th></tr></thead><tbody>' + unclear.map((r) => '<tr><td><b>' + esc(r.meta.label) + '</b><br><span class="mono muted small">' + r.rule + '</span></td><td><button class="lnk" data-act="openClause" data-c="' + r.meta.clause + '">' + r.meta.clause + '</button></td><td><span class="rate"><i style="width:' + Math.round(r.rate * 100) + '%"></i></span> ' + r.dis + ' of ' + r.n + ' (' + Math.round(r.rate * 100) + '%)</td><td>Creators keep overriding this. Add a clear example or an exception to clause ' + r.meta.clause + ', or relax the rule.</td></tr>').join('') + '</tbody></table></div>' : '<p class="empty">No unclear guidelines right now.</p>') + '</section>' +
+    '<section class="card"><div class="card-h"><h3>Repeat mistakes</h3><span class="muted small">Most frequent findings across all teams</span></div><div class="tw"><table><thead><tr><th>Rule</th><th>Times caught</th><th>Most affected team</th><th>Dismissed</th></tr></thead><tbody>' +
+    repeat.map((r) => '<tr><td><b>' + esc(r.meta.label) + '</b><br><span class="mono muted small">' + r.rule + '</span></td><td>' + r.n + '</td><td>' + esc(r.team) + '</td><td>' + Math.round(r.rate * 100) + '%</td></tr>').join('') + '</tbody></table></div></section></div>';
+}
+
+/* ---------- about ---------- */
+function viewAbout() {
+  const steps = [['Import', 'The Brand Manager sets up guidelines, glossary, approved facts, claims and palette.'], ['Check', 'A rule engine checks text and visual details. Every finding cites a clause or approved fact.'], ['Second opinion', 'Optional AI review for what rules cannot see. A validator drops anything without a real source.'], ['Fix', 'The creator accepts, edits or dismisses each suggestion. Nothing is changed automatically.'], ['Approve', 'Manager and Reviewer approve. High-severity dismissals need Reviewer sign-off.'], ['Learn', 'Every decision feeds the insights page so unclear guidelines get fixed.']];
+  return '<div class="wrap narrow"><div class="page-h"><div><h1>How BrandLens works</h1><p class="muted">Built for the Inkloom AI brand-governance challenge, Round 2. The brand “Lumo Budget” is fictional.</p></div></div>' +
+    '<ol class="flow">' + steps.map(([h, p], i) => '<li><span class="n">' + (i + 1) + '</span><div><b>' + h + '</b><p>' + p + '</p></div></li>').join('') + '</ol>' +
+    '<section class="card"><h3>Automation and human control</h3><div class="tw"><table><thead><tr><th>Done by rules</th><th>Done by AI (optional)</th><th>Always done by a person</th></tr></thead><tbody><tr><td>Terminology, capitals, hype words, facts, prices, claims, disclaimers, reading level, hashtags, contrast, palette, logo, personal data</td><td>Tone against the creator’s goal, misleading implications, confusing wording. Each finding must cite an existing clause and quote the draft.</td><td>Applying every change, dismissing findings, final approval, signing off dismissed high-severity findings, editing the brand kit</td></tr></tbody></table></div></section>' +
+    '<section class="card"><h3>Privacy and AI disclosure</h3><ul class="plain"><li>The rule engine runs entirely in your browser. Drafts are not uploaded for the rule checks.</li><li>The AI second opinion is optional. Before anything is sent you see the exact text. Emails, phone numbers and ID numbers are masked first.</li><li>Mark a review as confidential and the AI is switched off for it.</li><li>Findings about personal data or confidential markings can’t be dismissed, only fixed.</li><li>Demo data is stored only in this browser. Use “Reset demo data” on the Reviews page to start again.</li></ul></section>' +
+    '<section class="card"><h3>Known limits in this build</h3><ul class="plain"><li>Image checks use colours and details you provide plus a palette scan. Reading text inside images and spotting logo misuse by sight come in Round 3.</li><li>Roles are switched from the top bar for the demo. Real accounts and access rules come with the server version.</li><li>Rules are tuned for English. Hindi support is planned.</li></ul></section></div>';
+}
+
+/* ---------- router ---------- */
+function render() {
+  const y = window.scrollY;
+  renderTop();
+  const app = document.getElementById('app');
+  const views = { queue: viewQueue, review: viewReview, kit: viewKit, insights: viewInsights, about: viewAbout };
+  app.innerHTML = (views[UI.view] || viewQueue)();
+  window.scrollTo(0, y);
+  if (UI.flash) {
+    const el = document.getElementById(UI.flash);
+    if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.add('flash'); }
+    UI.flash = null;
+  }
+  if (UI.scrollCard && UI.active) {
+    const el = document.getElementById('fc-' + UI.active);
+    if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    UI.scrollCard = false;
+  }
+  if (UI.scrollMark) {
+    const m = document.querySelector('.mk.on');
+    if (m) m.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    UI.scrollMark = false;
+  }
+  if (UI.view === 'review' && UI.editing) {
+    const ta = document.getElementById('draft');
+    if (ta && UI.caret != null) { ta.focus(); ta.setSelectionRange(UI.caret, UI.caret); UI.caret = null; }
+  }
+}
+
+/* ===== main.js: events and boot ===== */
+const $ = (s, r) => (r || document).querySelector(s);
+const curSub = () => getSub(UI.sel);
+const findById = (sub, id) => analysis(sub).findings.find((f) => f.id === id);
+const findByKey = (sub, key) => analysis(sub).findings.find((f) => f.key === key);
+
+function openSub(id) {
+  Object.assign(UI, { sel: id, view: 'review', editing: false, tab: 'comments', sev: 'all', diffV: null, ai: null, dismissing: null, active: null, note: '', cdraft: '', cref: null });
+  render();
+  window.scrollTo(0, 0);
+}
+function phrasePattern(t) {
+  return '(?<![\\w])' + t.trim().split(/\s+/).map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/-/g, '[- ]')).join('\\s+') + '(?![\\w])';
+}
+function commitAndRender(msg, kind) { save(); render(); if (msg) toast(msg, kind); }
+
+/* ----- clicks ----- */
+document.addEventListener('click', async (ev) => {
+  const t = ev.target.closest('[data-act]');
+  if (!t) {
+    const card = ev.target.closest('.fc');
+    if (card && !ev.target.closest('button,input,textarea,a,label') && UI.view === 'review') {
+      UI.active = card.dataset.fid; UI.scrollMark = true; render();
+    }
+    return;
+  }
+  const a = t.dataset.act, sub = curSub();
+  const ed = sub && editable(sub);
+  switch (a) {
+    case 'nav': ev.preventDefault(); UI.view = t.dataset.v; UI.editing = false; try { history.replaceState(null, '', '#' + UI.view); } catch (e) { /* ignore */ } render(); window.scrollTo(0, 0); break;
+    case 'role': D.role = t.dataset.r; UI.editing = false; UI.dismissing = null; UI.note = ''; commitAndRender(); break;
+    case 'filter': UI.filter = t.dataset.k; render(); break;
+    case 'open': openSub(t.dataset.id); break;
+    case 'open-hero': openSub('s-hero'); break;
+    case 'newToggle': UI.newOpen = !UI.newOpen; render(); break;
+    case 'tourHide': D.tourHidden = true; commitAndRender(); break;
+    case 'reset': D = fresh(); cache.clear(); Object.assign(UI, { view: 'queue', sel: null, ai: null, newOpen: false }); commitAndRender('Demo data reset.'); break;
+
+    case 'pick': { UI.active = t.dataset.fid; UI.scrollCard = true; tourMark('picked'); save(); render(); break; }
+    case 'startEdit': UI.editing = true; UI.editStart = sub.draft; render(); break;
+    case 'editAt': { const f = findById(sub, t.dataset.fid); UI.editing = true; UI.editStart = sub.draft; UI.caret = f ? f.start : null; render(); break; }
+    case 'doneEdit': {
+      UI.editing = false;
+      if (UI.editStart !== undefined && UI.editStart !== sub.draft) log(sub, 'edit', 'Edited the text');
+      commitAndRender(); break;
+    }
+    case 'applyFix': {
+      if (!ed) break;
+      const f = findById(sub, t.dataset.fid);
+      if (f) { applyFinding(sub, f); commitAndRender('Fix applied. Review the change before you submit.'); }
+      break;
+    }
+    case 'applySafe': {
+      if (!ed) break;
+      const n = applySafe(sub);
+      commitAndRender(n + ' mechanical fix' + (n === 1 ? '' : 'es') + ' applied.');
+      break;
+    }
+    case 'dismissStart': UI.dismissing = t.dataset.key; render(); { const i = $('#dis-reason'); if (i) i.focus(); } break;
+    case 'dismissCancel': UI.dismissing = null; render(); break;
+    case 'dismissConfirm': {
+      const f = findByKey(sub, t.dataset.key);
+      const reason = ($('#dis-reason') || {}).value || '';
+      if (f && dismissFinding(sub, f, reason)) { UI.dismissing = null; commitAndRender('Dismissed. The reason is in the audit trail.'); }
+      break;
+    }
+    case 'undo': {
+      const d = sub.decisions[t.dataset.key];
+      if (d) {
+        const rule = t.dataset.key.split('|')[0];
+        const i = D.events.map((e, k) => (e.live && e.rule === rule && e.outcome === 'dismissed' ? k : -1)).filter((k) => k >= 0).pop();
+        if (i !== undefined) D.events.splice(i, 1);
+        delete sub.decisions[t.dataset.key];
+        log(sub, 'undo', 'Reopened a dismissed finding');
+        commitAndRender();
+      }
+      break;
+    }
+    case 'signoff': case 'signoffAll': {
+      const A = analysis(sub);
+      const list = a === 'signoff' ? A.findings.filter((f) => f.key === t.dataset.key) : A.needsAck;
+      list.forEach((f) => { if (f.decision && f.severity === 'high') { f.decision.ack = true; f.decision.ackBy = me().name; sub.decisions[f.key] = f.decision; log(sub, 'signoff', 'Signed off the dismissal of “' + (f.text || f.title).slice(0, 40) + '”'); } });
+      commitAndRender('Signed off.');
+      break;
+    }
+    case 'sev': UI.sev = t.dataset.k; render(); break;
+    case 'tab': UI.tab = t.dataset.k; render(); break;
+    case 'diff': UI.diffV = UI.diffV === +t.dataset.v ? null : +t.dataset.v; render(); break;
+    case 'commentOn': { const f = findById(sub, t.dataset.fid); UI.cref = f ? f.title : null; UI.tab = 'comments'; render(); const c = $('#cdraft'); if (c) { c.focus(); c.scrollIntoView({ block: 'center' }); } break; }
+    case 'clearRef': UI.cref = null; render(); break;
+    case 'postComment': {
+      const c = $('#cdraft'); const txt = c ? c.value : UI.cdraft;
+      if (!txt.trim()) { toast('Write a comment first.', 'bad'); break; }
+      addComment(sub, txt, UI.cref); UI.cdraft = ''; UI.cref = null; commitAndRender('Comment posted.');
+      break;
+    }
+    case 'gotoVisual': { const el = $('#v-alt') || $('#visualCard'); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.focus && el.focus(); } break; }
+    case 'samplePoster': {
+      if (!ed) break;
+      try {
+        const r = await processImage(samplePoster());
+        Object.assign(sub.visual, { hasImage: true, palette: r.palette, thumb: r.thumb });
+        log(sub, 'visual', 'Added an image (sample poster)');
+        commitAndRender('Sample poster added and scanned.');
+      } catch (e) { toast(e.message, 'bad'); }
+      break;
+    }
+
+    case 'saveVersion': if (saveVersion(sub, 'Saved by creator')) commitAndRender('Version saved.'); else toast('No changes since the last version.'); break;
+    case 'submit': {
+      const A = analysis(sub);
+      if (A.openHigh.length) { toast('Resolve the ' + A.openHigh.length + ' high-severity issue' + (A.openHigh.length > 1 ? 's' : '') + ' first: fix them, or dismiss with a reason.', 'bad'); break; }
+      saveVersion(sub, 'Submitted for review');
+      setStatus(sub, 'in_review', 'Submitted version ' + sub.versions.length + ' for review', 'submitted');
+      tourMark('submitted'); UI.editing = false;
+      commitAndRender('Submitted. Switch to Brand Manager (top right) to approve it.');
+      break;
+    }
+    case 'withdraw': setStatus(sub, 'draft', 'Withdrew the review to edit', 'withdraw'); commitAndRender(); break;
+    case 'approve': {
+      const bl = approvalBlockers(sub);
+      if (bl.length) { toast('Can’t approve yet: ' + bl.join('; ') + '.', 'bad'); break; }
+      const n = ($('#note') || {}).value || UI.note;
+      if (n && n.trim()) addComment(sub, n);
+      sub.approvedBy = me().name;
+      setStatus(sub, 'approved', 'Approved version ' + sub.versions.length, 'approved');
+      if (sub.id === 's-hero') tourMark('approved');
+      UI.note = ''; commitAndRender('Approved. This version is locked.');
+      break;
+    }
+    case 'requestChanges': case 'reject': {
+      const n = (($('#note') || {}).value || UI.note || '').trim();
+      if (n.length < 4) { toast('Add a decision note so the creator knows what to do.', 'bad'); break; }
+      addComment(sub, n);
+      if (a === 'reject') setStatus(sub, 'rejected', 'Rejected: ' + n, 'rejected');
+      else setStatus(sub, 'changes_requested', 'Requested changes: ' + n, 'changes');
+      UI.note = ''; commitAndRender(a === 'reject' ? 'Rejected.' : 'Changes requested. Switch to Creator to fix them.');
+      break;
+    }
+    case 'reopen': sub.approvedBy = null; setStatus(sub, 'in_review', 'Reopened the review', 'reopen'); commitAndRender(); break;
+
+    case 'aiOpen': if (sub.confidential) { toast('This review is confidential. The AI is off.', 'bad'); break; } UI.ai = { id: sub.id, status: 'confirm' }; render(); break;
+    case 'aiClose': UI.ai = null; render(); break;
+    case 'aiSend': await runAI(sub); render(); break;
+
+    case 'kitTab': UI.kitTab = t.dataset.k; render(); break;
+    case 'openClause': UI.view = 'kit'; UI.kitTab = 'guidelines'; UI.kitFocus = t.dataset.c; UI.flash = 'cl-' + t.dataset.c; render(); break;
+    case 'copyKit': {
+      const ta = $('#exp');
+      try { await navigator.clipboard.writeText(ta.value); toast('Kit JSON copied.'); } catch (e) { ta.focus(); ta.select(); toast('Press Ctrl+C to copy the selected text.'); }
+      break;
+    }
+    case 'importKit': {
+      if (!isManager()) break;
+      const txt = ($('#imp') || {}).value || '';
+      try {
+        const o = JSON.parse(txt);
+        let n = 0;
+        (o.glossary || []).forEach((g) => { if (Array.isArray(g.wrong) && g.right) { D.kit.glossary.push({ id: uid('G-'), wrong: g.wrong.map(String), right: String(g.right), rule: 'TERM-GLO', clause: 'T-2.1', note: g.note || '' }); n++; } });
+        (o.banned || []).forEach((b) => { if (b.phrase) { D.kit.banned.push({ phrase: String(b.phrase), kind: ['hype', 'jargon', 'slang'].includes(b.kind) ? b.kind : 'hype', suggest: b.suggest || '', channels: b.channels }); n++; } });
+        (o.claims || []).forEach((c) => { if (c.text && (c.status === 'approved' || c.status === 'prohibited')) { D.kit.claims.push({ id: uid(c.status === 'approved' ? 'AC-' : 'PC-'), status: c.status, text: String(c.text), pattern: c.pattern || phrasePattern(String(c.text)), suggest: c.suggest, source: c.source }); n++; } });
+        (o.facts || []).forEach((f) => { const k = D.kit.facts.find((x) => x.key === f.key); if (k && isFinite(+f.value)) { k.value = +f.value; n++; } });
+        if (!n) throw new Error('Nothing to import. Expected glossary, banned, claims or facts.');
+        kitChange('Imported ' + n + ' entries from JSON'); cache.clear(); commitAndRender('Imported ' + n + ' entries.');
+      } catch (e) { toast('Import failed: ' + e.message, 'bad'); }
+      break;
+    }
+  }
+});
+
+document.addEventListener('keydown', (ev) => {
+  if ((ev.key === 'Enter' || ev.key === ' ') && ev.target.matches && ev.target.matches('mark[data-act="pick"]')) { ev.preventDefault(); ev.target.click(); }
+});
+
+/* ----- inputs ----- */
+let saveT;
+const saveSoon = () => { clearTimeout(saveT); saveT = setTimeout(save, 400); };
+function syncRatio() {
+  const fg = ($('#v-fg') || {}).value, bg = ($('#v-bg') || {}).value, out = $('#ratioOut'), large = ($('#v-large') || {}).checked;
+  if (!out) return;
+  const r = fg && bg ? E.contrast(fg, bg) : null;
+  if (r) out.style.cssText = '--fg:' + fg + ';--bgc:' + bg;
+  const need = large ? 3 : 4.5;
+  out.lastElementChild.innerHTML = r ? '<b>' + r.toFixed(2) + ':1</b> ' + (r >= need ? '<em class="good">Passes AA</em>' : '<em class="bad">Fails AA (needs ' + need + ':1)</em>') : 'Enter two valid hex colours';
+}
+document.addEventListener('input', (ev) => {
+  const t = ev.target, sub = curSub();
+  if (t.id === 'draft' && sub) { sub.draft = t.value; const n = analysis(sub).open.length; const c = $('#liveCount'); if (c) c.textContent = n + ' open issue' + (n === 1 ? '' : 's'); saveSoon(); }
+  else if (t.id === 'goal' && sub) { sub.goal = t.value; saveSoon(); }
+  else if (t.id === 'cdraft') UI.cdraft = t.value;
+  else if (t.id === 'note') UI.note = t.value;
+  else if (t.id === 'nr-text') UI.newText = t.value;
+  else if (t.dataset && (t.dataset.vis === 'fg' || t.dataset.vis === 'bg')) {
+    const key = t.dataset.vis;
+    if (t.type === 'color') { const h = $('#v-' + key); if (h) h.value = t.value.toUpperCase(); }
+    else if (E.hexToRgb(t.value)) { const c = $('#v-' + key + 'c'); if (c) c.value = '#' + t.value.replace('#', '').padStart(6, '0').slice(0, 6); }
+    syncRatio();
+  }
+});
+document.addEventListener('change', async (ev) => {
+  const t = ev.target, sub = curSub();
+  if (t.id === 'openOnly') { UI.openOnly = t.checked; render(); return; }
+  if (t.dataset && t.dataset.vis && sub && editable(sub)) {
+    const k = t.dataset.vis, v = sub.visual;
+    if (k === 'hasImage' || k === 'large') v[k] = t.checked;
+    else if (k === 'fg' || k === 'bg') { let val = t.value.trim(); if (!val.startsWith('#')) val = '#' + val; if (!E.hexToRgb(val)) { toast('Use a hex colour such as #1B1F4B.', 'bad'); render(); return; } v[k] = val.length === 4 ? '#' + val.slice(1).split('').map((c) => c + c).join('') : val.toUpperCase(); }
+    else v[k] = t.value;
+    log(sub, 'visual', 'Updated visual details (' + k + ')');
+    commitAndRender();
+    return;
+  }
+  if (t.dataset && t.dataset.file === 'text' && t.files[0]) {
+    try { UI.newText = await readTextFile(t.files[0]); const ti = $('#nr-title'); if (ti && !ti.value) ti.value = t.files[0].name.replace(/\.[^.]+$/, ''); const ta = $('#nr-text'); if (ta) ta.value = UI.newText; toast('File loaded: ' + t.files[0].name); }
+    catch (e) { toast('Could not read this file: ' + e.message, 'bad'); }
+  }
+  if (t.dataset && t.dataset.file === 'image' && t.files[0] && sub) {
+    const url = URL.createObjectURL(t.files[0]);
+    try {
+      const r = await processImage(url);
+      Object.assign(sub.visual, { hasImage: true, palette: r.palette, thumb: r.thumb });
+      log(sub, 'visual', 'Added an image (' + t.files[0].name + ')');
+      commitAndRender('Image added and scanned.');
+    } catch (e) { toast(e.message, 'bad'); }
+    URL.revokeObjectURL(url);
+  }
+});
+
+/* ----- forms ----- */
+document.addEventListener('submit', (ev) => {
+  const f = ev.target.closest('form[data-form]');
+  if (!f) return;
+  ev.preventDefault();
+  const fd = Object.fromEntries(new FormData(f).entries());
+  const kind = f.dataset.form;
+  if (kind === 'newReview') {
+    if (!fd.text || !fd.text.trim()) { toast('Add some content to check.', 'bad'); return; }
+    const s = newReview({ title: fd.title.trim(), channel: fd.channel, team: fd.team, goal: fd.goal, text: fd.text, confidential: !!fd.confidential });
+    UI.newOpen = false; UI.newText = ''; save(); openSub(s.id);
+    const n = analysis(s).open.length;
+    toast(n ? n + ' issue' + (n === 1 ? '' : 's') + ' found. Click any underlined text to see why.' : 'No issues found.');
+    return;
+  }
+  if (!isManager()) { toast('Only the Brand Manager can edit the kit.', 'bad'); return; }
+  if (kind === 'addGlossary') {
+    const wrong = fd.wrong.split(',').map((s) => s.trim()).filter(Boolean);
+    if (!wrong.length || !fd.right.trim()) return;
+    D.kit.glossary.push({ id: uid('G-'), wrong, right: fd.right.trim(), rule: 'TERM-GLO', clause: 'T-2.1', note: fd.note || '' });
+    kitChange('Added glossary term: ' + wrong.join(', ') + ' → ' + fd.right.trim());
+  } else if (kind === 'addBanned') {
+    D.kit.banned.push({ phrase: fd.phrase.trim(), kind: fd.kind, suggest: (fd.suggest || '').trim(), channels: fd.kind === 'slang' ? ['Email', 'Press note'] : undefined });
+    kitChange('Added banned phrase: ' + fd.phrase.trim());
+  } else if (kind === 'setFact') {
+    const k = D.kit.facts.find((x) => x.key === f.dataset.key), v = Number(fd.value);
+    if (!k || !isFinite(v)) return;
+    const old = k.value; k.value = v;
+    kitChange('Updated “' + k.label + '” from ' + old + ' to ' + v);
+  } else if (kind === 'addClaim') {
+    const txt = fd.text.trim();
+    if (!txt) return;
+    const c = { id: uid(fd.status === 'approved' ? 'AC-' : 'PC-'), status: fd.status, text: txt, pattern: phrasePattern(txt) };
+    if (fd.status === 'approved') c.source = fd.extra || 'Added by Brand Manager'; else c.suggest = fd.extra ? fd.extra : '';
+    D.kit.claims.push(c);
+    kitChange('Added ' + fd.status + ' claim: ' + txt);
+  }
+  cache.clear(); commitAndRender('Brand kit updated to version ' + D.kit.version + '. Open reviews were re-checked.');
+});
+
+/* ----- boot ----- */
+window.addEventListener('hashchange', () => {
+  const h = location.hash.replace('#', '');
+  if (['queue', 'kit', 'insights', 'about'].includes(h) && h !== UI.view) { UI.view = h; render(); }
+});
+(function boot() {
+  const h = location.hash.replace('#', '');
+  if (['queue', 'kit', 'insights', 'about'].includes(h)) UI.view = h;
+  render();
+  getSample();
+})();
+
+})();
+</script>
